@@ -1,7 +1,8 @@
-import { BeforeInsert, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { BeforeInsert, Column, CreateDateColumn, Entity, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Exclude } from 'class-transformer';
 import { Role } from '../../auth/models/role.enum';
+import { Profile } from './profile.entity';
 
 @Entity({ name: 'usuario' })
 export class User {
@@ -23,6 +24,9 @@ export class User {
 
   @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', name: 'fecha_actualizacion' })
   fechaActualizacion: Date;
+
+  @OneToOne(() => Profile, (profile) => profile.user)
+  profile: Profile;
 
   @BeforeInsert()
   async hashPassword() {

@@ -1,16 +1,15 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { CreateUserDto, UpdateUserDto } from './dtos/user.dto';
-import { Auth, AuthOrOwner } from '../auth/decorators/auth.decorator';
-import { Role } from '../auth/models/role.enum';
-import { Public } from '../auth/decorators/public.decorator';
+import { UsersService } from '../services/users.service';
+import { CreateUserDto, UpdateUserDto } from '../dtos/user.dto';
+import { Auth } from '../../auth/decorators/auth.decorator';
+import { Role } from '../../auth/models/role.enum';
 
 @Controller('users')
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
+  @Auth(Role.Admin)
   @Post()
-  @Public()
   create(@Body() payload: CreateUserDto) {
     return this.usersService.create(payload);
   }
@@ -21,7 +20,7 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
-  @AuthOrOwner(Role.Admin)
+  @Auth(Role.Admin)
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.findOne(id);

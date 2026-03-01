@@ -1,9 +1,8 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, Inject } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import type { Observable } from 'rxjs';
-import { Inject } from '@nestjs/common';
 
 @Injectable()
 export class AppAuthGuard implements CanActivate {

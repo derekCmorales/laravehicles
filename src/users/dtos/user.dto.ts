@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsNotEmpty, IsString, MinLength } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
 import { Role } from '../../auth/models/role.enum';
 
@@ -12,8 +12,9 @@ export class CreateUserDto {
   @IsNotEmpty()
   username: string;
 
-  @IsOptional()
-  role?: Role;
+  @IsNotEmpty()
+  @IsString()
+  role: Role;
 }
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {}

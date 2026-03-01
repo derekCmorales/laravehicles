@@ -5,6 +5,13 @@ import { VehicleRegistration } from './vehicleRegistration.entity';
 import { VehicleDecal } from './vehicleDecal.entity';
 import { Taxpayer } from '../../users/entities/taxpayer.entity';
 
+export enum EstadoVehiculo {
+  ACTIVO = 'ACTIVO',
+  INACTIVO_ADMINISTRATIVO = 'INACTIVO_ADMINISTRATIVO',
+  ROBADO = 'ROBADO',
+  DESTRUIDO = 'DESTRUIDO',
+}
+
 @Entity({ name: 'vehiculo' })
 export class Vehicle {
   @PrimaryColumn({ type: 'varchar', length: 30, unique: true, name: 'placa', nullable: false })
@@ -15,6 +22,14 @@ export class Vehicle {
 
   @Column({ type: 'varchar', length: 50, name: 'uso', nullable: false })
   uso: string;
+
+  @Column({
+    type: 'enum',
+    enum: EstadoVehiculo,
+    default: EstadoVehiculo.ACTIVO,
+    name: 'estado',
+  })
+  estado: EstadoVehiculo;
 
   @Column({ type: 'int', name: 'modelo', nullable: false })
   modelo: number;
@@ -63,10 +78,10 @@ export class Vehicle {
   @JoinColumn({ name: 'nit', referencedColumnName: 'NIT' })
   taxpayer: Taxpayer;
 
-  @OneToMany(() => PropertyCertificate, (propertyCertificate) => propertyCertificate.vehicle)
+  @OneToMany(() => PropertyCertificate, (propertyCertificate) => propertyCertificate.vehicle, { cascade: true })
   propertyCertificates: PropertyCertificate[];
 
-  @OneToMany(() => VehicleRegistration, (vehicleRegistration) => vehicleRegistration.vehicle)
+  @OneToMany(() => VehicleRegistration, (vehicleRegistration) => vehicleRegistration.vehicle, { cascade: true })
   vehicleRegistrations: VehicleRegistration[];
 
   @OneToMany(() => VehicleDecal, (vehicleDecal) => vehicleDecal.vehicle)

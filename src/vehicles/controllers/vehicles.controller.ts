@@ -1,33 +1,41 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Req } from '@nestjs/common';
+import type { Request } from 'express';
 import { VehiclesService } from '../services/vehicles.service';
-import { CreateVehicleDto, UpdateVehicleDto } from '../dto/vehicle.dto';
+import { CreateVehicleWithPropertyRegistrationDto, UpdateVehicleWithPropertyRegistrationDto } from '../dto/vehicle.dto';
+import { Auth } from '../../auth/decorators/auth.decorator';
+import { Role } from '../../auth/models/role.enum';
 
 @Controller('vehicles')
 export class VehiclesController {
   constructor(private readonly vehiclesService: VehiclesService) {}
 
+  @Auth(Role.Admin)
   @Post()
-  create(@Body() createVehicleDto: CreateVehicleDto) {
-    return this.vehiclesService.create(createVehicleDto);
+  CreateVehicleWithPropertyRegistration(@Body() CreateVehicleWithPropertyRegistrationDto: CreateVehicleWithPropertyRegistrationDto) {
+    return this.vehiclesService.CreateVehicleWithPropertyRegistration(CreateVehicleWithPropertyRegistrationDto);
   }
 
+  @Auth(Role.Admin, Role.User)
   @Get()
-  findAll() {
-    return this.vehiclesService.findAll();
+  findAllVehicles(@Req() req: Request) {
+    return this.vehiclesService.findAllVehicles(req.user);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.vehiclesService.findOne(+id);
+  @Auth(Role.Admin, Role.User)
+  @Get(':placa')
+  findOneVehicle(@Param('placa') placa: string, @Req() req: Request) {
+    return this.vehiclesService.findOneVehicle(placa, req.user);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateVehicleDto: UpdateVehicleDto) {
-    return this.vehiclesService.update(+id, updateVehicleDto);
+  @Auth(Role.Admin)
+  @Patch(':placa')
+  updateVehicleWithPropertyRegistration(@Param('placa') placa: string, @Body() UpdateVehicleWithPropertyRegistrationDto: UpdateVehicleWithPropertyRegistrationDto) {
+    return this.vehiclesService.updateVehicleWithPropertyRegistration(placa, UpdateVehicleWithPropertyRegistrationDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.vehiclesService.remove(+id);
+  @Auth(Role.Admin)
+  @Patch(':placa/inactivar')
+  inactivateVehicle(@Param('placa') placa: string) {
+    return this.vehiclesService.inactivateVehicle(placa);
   }
 }

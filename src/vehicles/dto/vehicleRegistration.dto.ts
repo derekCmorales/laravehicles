@@ -8,7 +8,7 @@ export class CreateVehicleRegistrationDto {
 
   @IsDateString()
   @IsNotEmpty()
-  fechaRegistro: Date;
+  fechaRegistro: string;
 
   @IsString()
   @IsNotEmpty()
@@ -16,7 +16,7 @@ export class CreateVehicleRegistrationDto {
 
   @IsDateString()
   @IsNotEmpty()
-  validaHasta: Date;
+  validaHasta: string;
 }
 
 export class UpdateVehicleRegistrationDto extends PartialType(CreateVehicleRegistrationDto) {}

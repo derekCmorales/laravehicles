@@ -1,27 +1,46 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCatalogDto, UpdateCatalogDto } from '../dto/catalog.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Catalog } from '../entities/catalog.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class CatalogsService {
-  create(_createCatalogDto: CreateCatalogDto) {
-    void _createCatalogDto;
-    return 'This action adds a new catalog';
+  constructor(
+    @InjectRepository(Catalog)
+    private catalogsRepository: Repository<Catalog>,
+  ) {}
+
+  async create(payload: CreateCatalogDto) {
+    const existingCatalog = await this.catalogsRepository.findOne({ where: { codigoISCV: payload.codigoISCV } });
+    if (existingCatalog) {
+      throw new BadRequestException('Codigo ISCV ya existe');
+    }
+
+    const catalog = this.catalogsRepository.create(payload);
+    return this.catalogsRepository.save(catalog);
   }
 
   findAll() {
-    return `This action returns all catalogs`;
+    return this.catalogsRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} catalog`;
+  async findOne(codigoISCV: string) {
+    const catalog = await this.catalogsRepository.findOne({ where: { codigoISCV } });
+    if (!catalog) {
+      throw new NotFoundException('Catalog not found');
+    }
+    return catalog;
   }
 
-  update(id: number, _updateCatalogDto: UpdateCatalogDto) {
-    void _updateCatalogDto;
-    return `This action updates a #${id} catalog`;
+  async update(codigoISCV: string, payload: UpdateCatalogDto) {
+    const catalog = await this.findOne(codigoISCV);
+    this.catalogsRepository.merge(catalog, payload);
+    return this.catalogsRepository.save(catalog);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} catalog`;
+  async remove(codigoISCV: string) {
+    const catalog = await this.findOne(codigoISCV);
+    return this.catalogsRepository.remove(catalog);
   }
 }

@@ -1,7 +1,10 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { CatalogsService } from '../services/catalogs.service';
 import { CreateCatalogDto, UpdateCatalogDto } from '../dto/catalog.dto';
+import { Auth } from '../../auth/decorators/auth.decorator';
+import { Role } from '../../auth/models/role.enum';
 
+@Auth(Role.Admin)
 @Controller('catalogs')
 export class CatalogsController {
   constructor(private readonly catalogsService: CatalogsService) {}
@@ -16,18 +19,18 @@ export class CatalogsController {
     return this.catalogsService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.catalogsService.findOne(+id);
+  @Get(':codigoISCV')
+  findOne(@Param('codigoISCV') codigoISCV: string) {
+    return this.catalogsService.findOne(codigoISCV);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCatalogDto: UpdateCatalogDto) {
-    return this.catalogsService.update(+id, updateCatalogDto);
+  @Patch(':codigoISCV')
+  update(@Param('codigoISCV') codigoISCV: string, @Body() updateCatalogDto: UpdateCatalogDto) {
+    return this.catalogsService.update(codigoISCV, updateCatalogDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.catalogsService.remove(+id);
+  @Delete(':codigoISCV')
+  remove(@Param('codigoISCV') codigoISCV: string) {
+    return this.catalogsService.remove(codigoISCV);
   }
 }

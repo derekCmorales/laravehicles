@@ -12,7 +12,7 @@ export class CreatePropertyCertificateDto {
 
   @IsDateString()
   @IsNotEmpty()
-  fechaEmision: Date;
+  fechaEmision: string;
 
   @IsString()
   @IsNotEmpty()
@@ -24,7 +24,7 @@ export class CreatePropertyCertificateDto {
 
   @IsDateString()
   @IsNotEmpty()
-  fechaPoliza: Date;
+  fechaPoliza: string;
 
   @IsNumber()
   @IsNotEmpty()

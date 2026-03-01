@@ -1,5 +1,9 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsString, ValidateNested } from 'class-validator';
+import { CreatePropertyCertificateDto } from './propertyCertificate.dto';
+import { Type } from 'class-transformer';
+import { CreateVehicleRegistrationDto } from './vehicleRegistration.dto';
+import { EstadoVehiculo } from '../entities/vehicle.entity';
 
 export class CreateVehicleDto {
   @IsString()
@@ -65,6 +69,40 @@ export class CreateVehicleDto {
   @IsNumber()
   @IsNotEmpty()
   ejes: number;
+
+  @IsString()
+  @IsNotEmpty()
+  nit: string;
+
+  @IsString()
+  @IsNotEmpty()
+  codigoISCV: string;
+}
+export class CreateVehicleWithPropertyRegistrationDto extends CreateVehicleDto {
+  @ValidateNested()
+  @Type(() => CreatePropertyCertificateDto)
+  @IsNotEmpty()
+  propertyCertificate: CreatePropertyCertificateDto;
+
+  @ValidateNested()
+  @Type(() => CreateVehicleRegistrationDto)
+  @IsNotEmpty()
+  vehicleRegistration: CreateVehicleRegistrationDto;
 }
 
 export class UpdateVehicleDto extends PartialType(CreateVehicleDto) {}
+
+export class UpdateVehicleWithPropertyRegistrationDto extends PartialType(CreateVehicleDto) {
+  @IsEnum(EstadoVehiculo)
+  estado?: EstadoVehiculo;
+
+  @ValidateNested()
+  @Type(() => CreatePropertyCertificateDto)
+  @IsNotEmpty()
+  propertyCertificate?: CreatePropertyCertificateDto;
+
+  @ValidateNested()
+  @Type(() => CreateVehicleRegistrationDto)
+  @IsNotEmpty()
+  vehicleRegistration?: CreateVehicleRegistrationDto;
+}

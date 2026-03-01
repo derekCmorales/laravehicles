@@ -8,8 +8,8 @@ import { AuthModule } from './auth/auth.module';
 import { Env } from './env.model';
 import { APP_GUARD } from '@nestjs/core';
 import { AppAuthGuard } from './auth/guards/auth.guard';
-import { ProfilesModule } from './profiles/profiles.module';
 import { CatalogsModule } from './catalogs/catalogs.module';
+import { VehiclesModule } from './vehicles/vehicles.module';
 
 @Module({
   imports: [
@@ -31,8 +31,8 @@ import { CatalogsModule } from './catalogs/catalogs.module';
     }),
     UsersModule,
     AuthModule,
-    ProfilesModule,
     CatalogsModule,
+    VehiclesModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: AppAuthGuard }],

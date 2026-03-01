@@ -13,8 +13,8 @@ export class RolesOrOwnerGuard implements CanActivate {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest();
-    const user = request.user as { role?: Role; sub?: number } | undefined;
+    const request = context.switchToHttp().getRequest<{ user?: { role?: Role; sub?: number | string }; params?: { id?: string } }>();
+    const user = request.user;
     if (!user) {
       return false;
     }

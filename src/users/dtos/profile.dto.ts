@@ -20,7 +20,7 @@ export class CreateProfileDto {
 
   @IsDateString()
   @IsNotEmpty()
-  fechaNacimiento: Date;
+  fechaNacimiento: string;
 }
 
 export class UpdateProfileDto extends PartialType(CreateProfileDto) {}

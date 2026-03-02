@@ -2,6 +2,8 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateVehicleWithPropertyRegistrationDto, UpdateVehicleWithPropertyRegistrationDto } from '../dto/vehicle.dto';
+import { UpdatePropertyCertificateDto } from '../dto/propertyCertificate.dto';
+import { UpdateVehicleRegistrationDto } from '../dto/vehicleRegistration.dto';
 import { EstadoVehiculo, Vehicle } from '../entities/vehicle.entity';
 import { Catalog } from '../../catalogs/entities/catalog.entity';
 import { Taxpayer } from '../../users/entities/taxpayer.entity';
@@ -103,15 +105,15 @@ export class VehiclesService {
 
   async findAllVehicles(user?: AuthUser) {
     if (user?.role === Role.Admin) {
-      return this.vehiclesRepository.find({ relations: ['catalog', 'taxpayer'] });
+      return this.vehiclesRepository.find({ relations: ['catalog', 'taxpayer', 'taxpayer.profile'] });
     }
 
     const nit = await this.getNitByUser(user);
-    return this.vehiclesRepository.find({ where: { taxpayer: { NIT: nit } }, relations: ['catalog', 'taxpayer'] });
+    return this.vehiclesRepository.find({ where: { taxpayer: { NIT: nit } }, relations: ['catalog', 'taxpayer', 'taxpayer.profile'] });
   }
 
   async findOneVehicle(placa: string, user?: AuthUser) {
-    const vehicle = await this.vehiclesRepository.findOne({ where: { placa }, relations: ['catalog', 'taxpayer'] });
+    const vehicle = await this.vehiclesRepository.findOne({ where: { placa }, relations: ['catalog', 'taxpayer', 'taxpayer.profile'] });
     if (!vehicle) {
       throw new NotFoundException('Vehicle not found');
     }
@@ -230,6 +232,66 @@ export class VehiclesService {
     return this.vehiclesRepository.save(vehicle);
   }
 
+  async findPropertyCertificateByPlaca(placa: string, user?: AuthUser) {
+    const propertyCertificate = await this.propertyCertificatesRepository.createQueryBuilder('propertyCertificate').leftJoinAndSelect('propertyCertificate.vehicle', 'vehicle').leftJoinAndSelect('vehicle.taxpayer', 'taxpayer').where('vehicle.placa = :placa', { placa }).getOne();
+
+    if (!propertyCertificate) {
+      throw new NotFoundException('Property certificate not found');
+    }
+
+    if (user?.role === Role.Admin) {
+      return propertyCertificate;
+    }
+
+    const nit = await this.getNitByUser(user);
+    if (propertyCertificate.vehicle?.taxpayer?.NIT !== nit) {
+      throw new ForbiddenException('Property certificate not assigned to user');
+    }
+
+    return propertyCertificate;
+  }
+
+  async updatePropertyCertificateByPlaca(placa: string, payload: UpdatePropertyCertificateDto) {
+    const propertyCertificate = await this.propertyCertificatesRepository.createQueryBuilder('propertyCertificate').leftJoinAndSelect('propertyCertificate.vehicle', 'vehicle').where('vehicle.placa = :placa', { placa }).getOne();
+
+    if (!propertyCertificate) {
+      throw new NotFoundException('Property certificate not found');
+    }
+
+    const updated = this.propertyCertificatesRepository.merge(propertyCertificate, payload);
+    return this.propertyCertificatesRepository.save(updated);
+  }
+
+  async findVehicleRegistrationByPlaca(placa: string, user?: AuthUser) {
+    const vehicleRegistration = await this.vehicleRegistrationsRepository.createQueryBuilder('vehicleRegistration').leftJoinAndSelect('vehicleRegistration.vehicle', 'vehicle').leftJoinAndSelect('vehicle.taxpayer', 'taxpayer').where('vehicle.placa = :placa', { placa }).getOne();
+
+    if (!vehicleRegistration) {
+      throw new NotFoundException('Vehicle registration not found');
+    }
+
+    if (user?.role === Role.Admin) {
+      return vehicleRegistration;
+    }
+
+    const nit = await this.getNitByUser(user);
+    if (vehicleRegistration.vehicle?.taxpayer?.NIT !== nit) {
+      throw new ForbiddenException('Vehicle registration not assigned to user');
+    }
+
+    return vehicleRegistration;
+  }
+
+  async updateVehicleRegistrationByPlaca(placa: string, payload: UpdateVehicleRegistrationDto) {
+    const vehicleRegistration = await this.vehicleRegistrationsRepository.createQueryBuilder('vehicleRegistration').leftJoinAndSelect('vehicleRegistration.vehicle', 'vehicle').where('vehicle.placa = :placa', { placa }).getOne();
+
+    if (!vehicleRegistration) {
+      throw new NotFoundException('Vehicle registration not found');
+    }
+
+    const updated = this.vehicleRegistrationsRepository.merge(vehicleRegistration, payload);
+    return this.vehicleRegistrationsRepository.save(updated);
+  }
+
   private async getNitByUser(user?: AuthUser) {
     if (!user?.sub) {
       throw new ForbiddenException('User not authenticated');
@@ -247,5 +309,112 @@ export class VehiclesService {
     }
 
     return taxpayer.NIT;
+  }
+
+  async generateCalcomania(placa: string, user?: AuthUser) {
+    const vehicle = await this.vehiclesRepository.findOne({
+      where: { placa },
+      relations: ['catalog', 'taxpayer', 'taxpayer.profile', 'propertyCertificates', 'vehicleRegistrations'],
+    });
+    if (!vehicle) {
+      throw new NotFoundException('Vehicle not found');
+    }
+
+    if (user?.role !== Role.Admin) {
+      const nit = await this.getNitByUser(user);
+      if (vehicle.taxpayer?.NIT !== nit) {
+        throw new ForbiddenException('Vehicle not assigned to user');
+      }
+    }
+
+    const currentYear = new Date().getFullYear();
+    const fechaPago = new Date();
+    const valorBaseCatalogo = vehicle.catalog?.valorBase ?? 0;
+    const tipoVehiculo = vehicle.catalog?.tipoVehiculo ?? '';
+    const montoIscv = this.calcularMontoIscv(vehicle.modelo, valorBaseCatalogo, tipoVehiculo, currentYear, fechaPago);
+
+    const propertyCertificate = vehicle.propertyCertificates?.[0];
+    const vehicleRegistration = vehicle.vehicleRegistrations?.[0];
+
+    const propietario = this.getNombreContribuyente(vehicle.taxpayer);
+    const marca = this.getDescripcionCatalogo(vehicle.catalog);
+
+    const calcomaniaData = {
+      placa: vehicle.placa,
+      modelo: vehicle.modelo,
+      color: vehicle.color,
+      propietario,
+      marca,
+      anio: currentYear,
+      montoIscv,
+      noCertificadoVigente: propertyCertificate?.noCertificado ?? null,
+      noTarjetaVigente: vehicleRegistration?.noTarjeta ?? null,
+      fechaPago,
+    };
+
+    return calcomaniaData;
+  }
+
+  private getNombreContribuyente(taxpayer?: Taxpayer) {
+    if (!taxpayer) {
+      return 'N/A';
+    }
+
+    if (taxpayer.nombreEmpresa) {
+      return taxpayer.nombreEmpresa;
+    }
+
+    const profile = taxpayer.profile;
+    if (!profile) {
+      return 'N/A';
+    }
+
+    const nombres = [profile.primerNombre, profile.segundoNombre].filter(Boolean).join(' ');
+    const apellidos = [profile.primerApellido, profile.segundoApellido].filter(Boolean).join(' ');
+    const nombreCompleto = [nombres, apellidos].filter(Boolean).join(' ').trim();
+
+    return nombreCompleto || 'N/A';
+  }
+
+  private getDescripcionCatalogo(catalog?: Catalog) {
+    if (!catalog) {
+      return 'N/A';
+    }
+
+    return [catalog.marca, catalog.lineaEstilo].filter(Boolean).join(' ').trim() || 'N/A';
+  }
+
+  /**
+   * Calcula el monto a pagar por el Impuesto de Circulacion (ISCV)
+   */
+  private calcularMontoIscv(modeloVehiculo: number, valorBaseCatalogo: number, tipoVehiculo: string, anioCobro: number, fechaPago: Date): number {
+    const antiguedad = anioCobro - modeloVehiculo;
+
+    let porcentajeDepreciacion = 0;
+    if (antiguedad === 1) porcentajeDepreciacion = 0.2;
+    else if (antiguedad === 2) porcentajeDepreciacion = 0.4;
+    else if (antiguedad === 3) porcentajeDepreciacion = 0.6;
+    else if (antiguedad >= 4) porcentajeDepreciacion = 0.8;
+
+    const valorImponible = valorBaseCatalogo - valorBaseCatalogo * porcentajeDepreciacion;
+
+    let impuesto = valorImponible * 0.002;
+
+    const impuestoMinimo = tipoVehiculo === 'MOTOCICLETA' ? 75.0 : 110.0;
+    if (impuesto < impuestoMinimo) {
+      impuesto = impuestoMinimo;
+    }
+
+    const fechaLimite = new Date(`${anioCobro}-07-31T23:59:59`);
+    let totalAPagar = 0;
+
+    if (fechaPago <= fechaLimite) {
+      totalAPagar = impuesto * 0.5;
+    } else {
+      const multa = impuesto * 1.0;
+      totalAPagar = impuesto + multa;
+    }
+
+    return totalAPagar;
   }
 }

@@ -158,6 +158,7 @@ export class UsersService {
     return this.usersRepository.findOne({
       where: { username },
       select: ['idUsuario', 'username', 'password', 'role'],
+      relations: ['profile'],
     });
   }
 }

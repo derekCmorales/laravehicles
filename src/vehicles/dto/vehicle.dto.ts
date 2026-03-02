@@ -3,6 +3,7 @@ import { IsEnum, IsNotEmpty, IsNumber, IsString, ValidateNested } from 'class-va
 import { CreatePropertyCertificateDto } from './propertyCertificate.dto';
 import { Type } from 'class-transformer';
 import { CreateVehicleRegistrationDto } from './vehicleRegistration.dto';
+import { CreateVehicleDecalDto } from './vehicleDecal.dto';
 import { EstadoVehiculo } from '../entities/vehicle.entity';
 
 export class CreateVehicleDto {
@@ -105,4 +106,21 @@ export class UpdateVehicleWithPropertyRegistrationDto extends PartialType(Create
   @Type(() => CreateVehicleRegistrationDto)
   @IsNotEmpty()
   vehicleRegistration?: CreateVehicleRegistrationDto;
+}
+
+export class generateVehicleDecalDto extends CreateVehicleDto {
+  @ValidateNested()
+  @Type(() => CreateVehicleDecalDto)
+  @IsNotEmpty()
+  vehicleDecal: CreateVehicleDecalDto;
+
+  @ValidateNested()
+  @Type(() => CreatePropertyCertificateDto)
+  @IsNotEmpty()
+  propertyCertificate: CreatePropertyCertificateDto;
+
+  @ValidateNested()
+  @Type(() => CreateVehicleRegistrationDto)
+  @IsNotEmpty()
+  vehicleRegistration: CreateVehicleRegistrationDto;
 }

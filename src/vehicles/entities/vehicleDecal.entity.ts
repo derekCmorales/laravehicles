@@ -11,11 +11,11 @@ export class VehicleDecal {
   @Column({ type: 'int', name: 'anio', nullable: false })
   anio: number;
 
-  @Column({ type: 'varchar', length: 20, name: 'estado', nullable: false })
+  @Column({ type: 'varchar', length: 20, name: 'estado', nullable: false, default: 'PENDIENTE' })
   estado: string;
 
-  @Column({ type: 'timestamp', name: 'fecha_impresion', nullable: false })
-  fechaImpresion: Date;
+  @Column({ type: 'timestamp', name: 'fecha_impresion', nullable: true })
+  fechaImpresion: Date | null;
 
   @ManyToOne(() => Vehicle, (vehicle) => vehicle.vehicleDecals, { nullable: false })
   @JoinColumn({ name: 'placa', referencedColumnName: 'placa' })

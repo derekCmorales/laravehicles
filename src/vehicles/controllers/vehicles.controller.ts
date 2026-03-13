@@ -70,4 +70,10 @@ export class VehiclesController {
   generateCalcomania(@Param('placa') placa: string, @Req() req: Request) {
     return this.vehiclesService.generateCalcomania(placa, req.user);
   }
+
+  @Auth(Role.Admin, Role.User)
+  @Post(':placa/calcomania/pagar')
+  pagarCalcomania(@Param('placa') placa: string, @Req() req: Request) {
+    return this.vehiclesService.pagarCalcomania(placa, req.user);
+  }
 }

@@ -1,5 +1,5 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { IsDateString, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateVehicleDecalDto {
   @IsString()
@@ -11,12 +11,12 @@ export class CreateVehicleDecalDto {
   anio: number;
 
   @IsString()
-  @IsNotEmpty()
-  estado: string;
+  @IsOptional()
+  estado?: string;
 
+  @IsOptional()
   @IsDateString()
-  @IsNotEmpty()
-  fechaImpresion: Date;
+  fechaImpresion?: Date;
 }
 
 export class UpdateVehicleDecalDto extends PartialType(CreateVehicleDecalDto) {}

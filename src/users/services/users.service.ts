@@ -161,4 +161,21 @@ export class UsersService {
       relations: ['profile'],
     });
   }
+
+  async findAllProfilesTaxpayers() {
+    return this.usersRepository.find({
+      relations: ['profile', 'profile.taxpayer'],
+    });
+  }
+
+  async findOneProfileTaxpayerbyNIT(id: string) {
+    const user = await this.taxpayersRepository.findOne({
+      where: { NIT: id },
+      relations: ['profile', 'profile.user'],
+    });
+    if (!user) {
+      throw new NotFoundException('contribuyente no encontrado');
+    }
+    return user;
+  }
 }

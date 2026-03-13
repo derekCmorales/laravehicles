@@ -10,6 +10,7 @@ import { Taxpayer } from '../../users/entities/taxpayer.entity';
 import { Role } from '../../auth/models/role.enum';
 import { PropertyCertificate } from '../entities/propertyCertificate.entity';
 import { VehicleRegistration } from '../entities/vehicleRegistration.entity';
+import { VehicleDecal } from '../entities/vehicleDecal.entity';
 
 type AuthUser = { role?: Role; sub?: number | string };
 
@@ -22,6 +23,8 @@ export class VehiclesService {
     private propertyCertificatesRepository: Repository<PropertyCertificate>,
     @InjectRepository(VehicleRegistration)
     private vehicleRegistrationsRepository: Repository<VehicleRegistration>,
+    @InjectRepository(VehicleDecal)
+    private vehicleDecalsRepository: Repository<VehicleDecal>,
     @InjectRepository(Catalog)
     private catalogsRepository: Repository<Catalog>,
     @InjectRepository(Taxpayer)
@@ -232,7 +235,23 @@ export class VehiclesService {
     return this.vehiclesRepository.save(vehicle);
   }
 
+  private async checkCalcomaniaPagada(placa: string, user?: AuthUser) {
+    if (user?.role === Role.Admin) {
+      return;
+    }
+
+    const currentYear = new Date().getFullYear();
+    const decal = await this.vehicleDecalsRepository.findOne({
+      where: { vehicle: { placa }, anio: currentYear },
+    });
+
+    if (!decal || decal.estado !== 'PAGADO') {
+      throw new ForbiddenException('Calcomania must be paid for the current year to access this document');
+    }
+  }
+
   async findPropertyCertificateByPlaca(placa: string, user?: AuthUser) {
+    await this.checkCalcomaniaPagada(placa, user);
     const propertyCertificate = await this.propertyCertificatesRepository.createQueryBuilder('propertyCertificate').leftJoinAndSelect('propertyCertificate.vehicle', 'vehicle').leftJoinAndSelect('vehicle.taxpayer', 'taxpayer').where('vehicle.placa = :placa', { placa }).getOne();
 
     if (!propertyCertificate) {
@@ -263,6 +282,7 @@ export class VehiclesService {
   }
 
   async findVehicleRegistrationByPlaca(placa: string, user?: AuthUser) {
+    await this.checkCalcomaniaPagada(placa, user);
     const vehicleRegistration = await this.vehicleRegistrationsRepository.createQueryBuilder('vehicleRegistration').leftJoinAndSelect('vehicleRegistration.vehicle', 'vehicle').leftJoinAndSelect('vehicle.taxpayer', 'taxpayer').where('vehicle.placa = :placa', { placa }).getOne();
 
     if (!vehicleRegistration) {
@@ -317,13 +337,13 @@ export class VehiclesService {
       relations: ['catalog', 'taxpayer', 'taxpayer.profile', 'propertyCertificates', 'vehicleRegistrations'],
     });
     if (!vehicle) {
-      throw new NotFoundException('Vehicle not found');
+      throw new NotFoundException('Vehiculo no encontrado');
     }
 
     if (user?.role !== Role.Admin) {
       const nit = await this.getNitByUser(user);
       if (vehicle.taxpayer?.NIT !== nit) {
-        throw new ForbiddenException('Vehicle not assigned to user');
+        throw new ForbiddenException('Vehiculo no asignado a usuario');
       }
     }
 
@@ -336,10 +356,33 @@ export class VehiclesService {
     const propertyCertificate = vehicle.propertyCertificates?.[0];
     const vehicleRegistration = vehicle.vehicleRegistrations?.[0];
 
+    if (!propertyCertificate || !vehicleRegistration) {
+      throw new BadRequestException('Vehiculo necesita Certificado de Propiedad y Tarjeta de Circulación para generar calcomania');
+    }
+
+    let decal = await this.vehicleDecalsRepository.findOne({
+      where: { vehicle: { placa }, anio: currentYear },
+    });
+
+    if (!decal) {
+      decal = this.vehicleDecalsRepository.create({
+        idCalcomania: Math.random().toString(36).substring(2, 10).toUpperCase(),
+        anio: currentYear,
+        estado: 'PENDIENTE',
+        fechaImpresion: null,
+        vehicle,
+        propertyCertificate,
+        vehicleRegistration,
+      });
+      decal = await this.vehicleDecalsRepository.save(decal);
+    }
+
     const propietario = this.getNombreContribuyente(vehicle.taxpayer);
     const marca = this.getDescripcionCatalogo(vehicle.catalog);
 
     const calcomaniaData = {
+      idCalcomania: decal.idCalcomania,
+      estado: decal.estado,
       placa: vehicle.placa,
       modelo: vehicle.modelo,
       color: vehicle.color,
@@ -347,12 +390,41 @@ export class VehiclesService {
       marca,
       anio: currentYear,
       montoIscv,
-      noCertificadoVigente: propertyCertificate?.noCertificado ?? null,
-      noTarjetaVigente: vehicleRegistration?.noTarjeta ?? null,
-      fechaPago,
+      noCertificadoVigente: propertyCertificate.noCertificado,
+      noTarjetaVigente: vehicleRegistration.noTarjeta,
+      fechaImpresion: decal.fechaImpresion,
+      fechaCalculo: fechaPago,
     };
 
     return calcomaniaData;
+  }
+
+  async pagarCalcomania(placa: string, user?: AuthUser) {
+    const currentYear = new Date().getFullYear();
+    const decal = await this.vehicleDecalsRepository.findOne({
+      where: { vehicle: { placa }, anio: currentYear },
+      relations: ['vehicle', 'vehicle.taxpayer'],
+    });
+
+    if (!decal) {
+      throw new NotFoundException('Calcomania no encontrada');
+    }
+
+    if (user?.role !== Role.Admin) {
+      const nit = await this.getNitByUser(user);
+      if (decal.vehicle?.taxpayer?.NIT !== nit) {
+        throw new ForbiddenException('Vehicle no asignado a NIT');
+      }
+    }
+
+    if (decal.estado === 'PAGADO') {
+      throw new BadRequestException('Calcomania ya pagada');
+    }
+
+    decal.estado = 'PAGADO';
+    decal.fechaImpresion = new Date();
+
+    return this.vehicleDecalsRepository.save(decal);
   }
 
   private getNombreContribuyente(taxpayer?: Taxpayer) {

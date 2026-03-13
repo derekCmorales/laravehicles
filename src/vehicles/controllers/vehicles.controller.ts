@@ -1,5 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Req } from '@nestjs/common';
-import type { Request } from 'express';
+import { Controller, Get, Post, Body, Patch, Param, Req, Res } from '@nestjs/common';
+import type { Request, Response } from 'express';
 import { VehiclesService } from '../services/vehicles.service';
 import { CreateVehicleWithPropertyRegistrationDto, UpdateVehicleWithPropertyRegistrationDto } from '../dto/vehicle.dto';
 import { UpdatePropertyCertificateDto } from '../dto/propertyCertificate.dto';
@@ -54,9 +54,33 @@ export class VehiclesController {
   }
 
   @Auth(Role.Admin, Role.User)
+  @Get(':placa/property-certificate/pdf')
+  async exportPropertyCertificatePdf(@Param('placa') placa: string, @Req() req: Request, @Res() res: Response) {
+    const pdfBuffer = await this.vehiclesService.exportPropertyCertificatePdf(placa, req.user);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="Certificado_Propiedad_${placa}.pdf"`,
+      'Content-Length': pdfBuffer.length,
+    });
+    res.end(pdfBuffer);
+  }
+
+  @Auth(Role.Admin, Role.User)
   @Get(':placa/vehicle-registration')
   findVehicleRegistrationByPlaca(@Param('placa') placa: string, @Req() req: Request) {
     return this.vehiclesService.findVehicleRegistrationByPlaca(placa, req.user);
+  }
+
+  @Auth(Role.Admin, Role.User)
+  @Get(':placa/vehicle-registration/pdf')
+  async exportVehicleRegistrationPdf(@Param('placa') placa: string, @Req() req: Request, @Res() res: Response) {
+    const pdfBuffer = await this.vehiclesService.exportVehicleRegistrationPdf(placa, req.user);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="Tarjeta_Circulacion_${placa}.pdf"`,
+      'Content-Length': pdfBuffer.length,
+    });
+    res.end(pdfBuffer);
   }
 
   @Auth(Role.Admin)
@@ -69,6 +93,18 @@ export class VehiclesController {
   @Post(':placa/calcomania')
   generateCalcomania(@Param('placa') placa: string, @Req() req: Request) {
     return this.vehiclesService.generateCalcomania(placa, req.user);
+  }
+
+  @Auth(Role.Admin, Role.User)
+  @Get(':placa/calcomania/pdf')
+  async exportVehicleDecalPdf(@Param('placa') placa: string, @Req() req: Request, @Res() res: Response) {
+    const pdfBuffer = await this.vehiclesService.exportVehicleDecalPdf(placa, req.user);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="Calcomania_${placa}.pdf"`,
+      'Content-Length': pdfBuffer.length,
+    });
+    res.end(pdfBuffer);
   }
 
   @Auth(Role.Admin, Role.User)

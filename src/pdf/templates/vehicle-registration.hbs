@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Tarjeta de Circulación</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            width: 1000px;
+            /* Using landscape layout based on the image size */
+        }
+        .container {
+            display: flex;
+            border: 4px solid #888;
+            padding: 10px;
+            background: #f5f5f5;
+        }
+        .left-panel {
+            flex: 1;
+            border-right: 2px solid #ccc;
+            padding-right: 15px;
+        }
+        .right-panel {
+            flex: 1;
+            padding-left: 15px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1b458d;
+        }
+        .title {
+            text-align: center;
+        }
+        .title h1 {
+            font-size: 18px;
+            margin: 0;
+            text-transform: uppercase;
+        }
+        .title h2 {
+            font-size: 14px;
+            margin: 5px 0 0 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            margin-bottom: 15px;
+        }
+        td {
+            padding: 3px 0;
+            border-bottom: 1px dotted #ccc;
+        }
+        .label {
+            font-weight: bold;
+            width: 25%;
+        }
+        .value {
+            text-transform: uppercase;
+        }
+        
+        /* Right panel styling */
+        .right-header {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .right-header h1 {
+            font-size: 16px;
+            margin: 0;
+        }
+        .right-header h2 {
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        .qr-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .qr-code {
+            width: 120px;
+            height: 120px;
+            margin-right: 20px;
+        }
+        .qr-info {
+            font-size: 11px;
+            line-height: 1.6;
+        }
+        .legal-text {
+            font-size: 10px;
+            text-align: justify;
+            margin-top: 20px;
+            color: #555;
+            line-height: 1.4;
+        }
+        .footer-banner {
+            background-color: #888;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-size: 11px;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Tarjeta de circulación Part -->
+        <div class="left-panel">
+            <div class="header">
+                <div class="logo">SAT</div>
+                <div class="title">
+                    <h1>TARJETA DE CIRCULACIÓN</h1>
+                    <h2>SAT - 4201</h2>
+                    <h2>No. {{ vehicleRegistration.noTarjeta }}</h2>
+                </div>
+            </div>
+
+            <table>
+                <tr>
+                    <td class="label">NIT:</td>
+                    <td class="value">{{ vehicle.taxpayer.NIT }}</td>
+                    <td class="label">NOMBRE:</td>
+                    <td class="value">{{ fullName }}</td>
+                </tr>
+                <tr>
+                    <td class="label">CUI (DPI):</td>
+                    <td class="value" colspan="3">{{ vehicle.taxpayer.CUI }}</td>
+                </tr>
+            </table>
+
+            <table>
+                <tr>
+                    <td class="label">USO:</td>
+                    <td class="value">{{ vehicle.uso }}</td>
+                    <td class="label">PLACA:</td>
+                    <td class="value">{{ vehicle.placa }}</td>
+                </tr>
+                <tr>
+                    <td class="label">TIPO:</td>
+                    <td class="value">{{ vehicle.catalog.tipoVehiculo }}</td>
+                    <td class="label">MARCA:</td>
+                    <td class="value">{{ vehicle.catalog.marca }}</td>
+                </tr>
+                <tr>
+                    <td class="label">LÍNEA:</td>
+                    <td class="value">{{ vehicle.catalog.lineaEstilo }}</td>
+                    <td class="label">MODELO:</td>
+                    <td class="value">{{ vehicle.modelo }}</td>
+                </tr>
+                <tr>
+                    <td class="label">CHASIS:</td>
+                    <td class="value">{{ vehicle.chasis }}</td>
+                    <td class="label">VIN:</td>
+                    <td class="value">{{ vehicle.vin }}</td>
+                </tr>
+                <tr>
+                    <td class="label">SERIE:</td>
+                    <td class="value">{{ vehicle.serie }}</td>
+                    <td class="label">MOTOR:</td>
+                    <td class="value">{{ vehicle.motor }}</td>
+                </tr>
+                <tr>
+                    <td class="label">ASIENTOS:</td>
+                    <td class="value">{{ vehicle.asientos }}</td>
+                    <td class="label">CILINDROS:</td>
+                    <td class="value">{{ vehicle.cilindros }}</td>
+                </tr>
+                <tr>
+                    <td class="label">EJES:</td>
+                    <td class="value">{{ vehicle.ejes }}</td>
+                    <td class="label">C.C.:</td>
+                    <td class="value">{{ vehicle.centimetrosCubicos }}</td>
+                </tr>
+                <tr>
+                    <td class="label">COLOR:</td>
+                    <td class="value" colspan="3">{{ vehicle.color }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Identificador Part -->
+        <div class="right-panel">
+            <div class="header" style="justify-content: space-between;">
+                <div class="logo">SAT</div>
+                <div class="right-header">
+                    <h1>CÓDIGO ÚNICO IDENTIFICADOR</h1>
+                    <h2>{{ vehicle.codigoUnicoIdentificador }}</h2>
+                    <h2>Válida hasta: {{ vehicleRegistration.validaHasta }}</h2>
+                </div>
+            </div>
+
+            <div class="qr-section">
+                {{#if qrCode}}
+                <img src="{{ qrCode }}" class="qr-code" alt="QR Code">
+                {{/if}}
+                <div class="qr-info">
+                    <strong>Usuario:</strong> {{ vehicle.taxpayer.NIT }}<br>
+                    <strong>Fecha:</strong> {{ currentDate }}<br>
+                    <strong>Fecha de Registro:</strong> {{ vehicleRegistration.fechaRegistro }}
+                </div>
+            </div>
+
+            <div class="legal-text">
+                Acuerdo Gubernativo 134-2014 Reglamento de la Ley del Impuesto Sobre Circulación de Vehículos Terrestres, Marítimos y Aéreos, Artículo 20; Decreto 132-96 Ley de Tránsito Artículo 18 literal a); y Acuerdo Gubernativo 273-98 Reglamento de la Ley de Tránsito, Artículo 10 literal a).
+            </div>
+
+            <div style="font-size: 8px; word-break: break-all; margin-top: 10px; color: #888;">
+                {{ qrRawData }}
+            </div>
+            
+            <div class="footer-banner">
+                Podrá verificar la autenticidad de este distintivo electrónico, a través del Código QR que se consigna en la Tarjeta de Circulación.
+            </div>
+        </div>
+    </div>
+</body>
+</html>

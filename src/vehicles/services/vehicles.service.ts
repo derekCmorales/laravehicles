@@ -11,6 +11,8 @@ import { Role } from '../../auth/models/role.enum';
 import { PropertyCertificate } from '../entities/propertyCertificate.entity';
 import { VehicleRegistration } from '../entities/vehicleRegistration.entity';
 import { VehicleDecal } from '../entities/vehicleDecal.entity';
+import { PdfService } from '../../pdf/pdf.service';
+import * as QRCode from 'qrcode';
 
 type AuthUser = { role?: Role; sub?: number | string };
 
@@ -29,6 +31,7 @@ export class VehiclesService {
     private catalogsRepository: Repository<Catalog>,
     @InjectRepository(Taxpayer)
     private taxpayersRepository: Repository<Taxpayer>,
+    private pdfService: PdfService,
   ) {}
 
   async CreateVehicleWithPropertyRegistration(payload: CreateVehicleWithPropertyRegistrationDto) {
@@ -252,7 +255,7 @@ export class VehiclesService {
 
   async findPropertyCertificateByPlaca(placa: string, user?: AuthUser) {
     await this.checkCalcomaniaPagada(placa, user);
-    const propertyCertificate = await this.propertyCertificatesRepository.createQueryBuilder('propertyCertificate').leftJoinAndSelect('propertyCertificate.vehicle', 'vehicle').leftJoinAndSelect('vehicle.taxpayer', 'taxpayer').where('vehicle.placa = :placa', { placa }).getOne();
+    const propertyCertificate = await this.propertyCertificatesRepository.createQueryBuilder('propertyCertificate').leftJoinAndSelect('propertyCertificate.vehicle', 'vehicle').leftJoinAndSelect('vehicle.taxpayer', 'taxpayer').leftJoinAndSelect('taxpayer.profile', 'profile').leftJoinAndSelect('vehicle.catalog', 'catalog').where('vehicle.placa = :placa', { placa }).getOne();
 
     if (!propertyCertificate) {
       throw new NotFoundException('Property certificate not found');
@@ -283,7 +286,7 @@ export class VehiclesService {
 
   async findVehicleRegistrationByPlaca(placa: string, user?: AuthUser) {
     await this.checkCalcomaniaPagada(placa, user);
-    const vehicleRegistration = await this.vehicleRegistrationsRepository.createQueryBuilder('vehicleRegistration').leftJoinAndSelect('vehicleRegistration.vehicle', 'vehicle').leftJoinAndSelect('vehicle.taxpayer', 'taxpayer').where('vehicle.placa = :placa', { placa }).getOne();
+    const vehicleRegistration = await this.vehicleRegistrationsRepository.createQueryBuilder('vehicleRegistration').leftJoinAndSelect('vehicleRegistration.vehicle', 'vehicle').leftJoinAndSelect('vehicle.taxpayer', 'taxpayer').leftJoinAndSelect('taxpayer.profile', 'profile').leftJoinAndSelect('vehicle.catalog', 'catalog').where('vehicle.placa = :placa', { placa }).getOne();
 
     if (!vehicleRegistration) {
       throw new NotFoundException('Vehicle registration not found');
@@ -488,5 +491,78 @@ export class VehiclesService {
     }
 
     return totalAPagar;
+  }
+
+  async exportPropertyCertificatePdf(placa: string, user?: AuthUser) {
+    const document = await this.findPropertyCertificateByPlaca(placa, user);
+    const vehicle = document.vehicle;
+    const fullName = this.getNombreContribuyente(vehicle.taxpayer);
+    const qrRawData = `property_certificate|${document.noCertificado}|${vehicle.placa}|${vehicle.vin}|${vehicle.taxpayer.NIT}`;
+    const qrCode = await QRCode.toDataURL(qrRawData);
+
+    const templateData = {
+      propertyCertificate: document,
+      vehicle,
+      fullName,
+      address: vehicle.taxpayer?.domicilioFiscal || 'N/A',
+      importerNit: vehicle.taxpayer?.NIT || 'N/A',
+      importerCui: vehicle.taxpayer?.CUI || 'N/A',
+      importerAddress: vehicle.taxpayer?.domicilioFiscal || 'N/A',
+      qrCode,
+      currentDate: new Date().toLocaleDateString('es-GT'),
+    };
+
+    return this.pdfService.generatePdfFromTemplate('property-certificate', templateData);
+  }
+
+  async exportVehicleRegistrationPdf(placa: string, user?: AuthUser) {
+    const document = await this.findVehicleRegistrationByPlaca(placa, user);
+    const vehicle = document.vehicle;
+    const fullName = this.getNombreContribuyente(vehicle.taxpayer);
+    const qrRawData = `vehicle_registration|${document.noTarjeta}|${vehicle.placa}|${vehicle.codigoUnicoIdentificador}|${vehicle.taxpayer.NIT}`;
+    const qrCode = await QRCode.toDataURL(qrRawData);
+
+    const templateData = {
+      vehicleRegistration: document,
+      vehicle,
+      fullName,
+      qrCode,
+      qrRawData,
+      currentDate: new Date().toLocaleDateString('es-GT'),
+    };
+
+    return this.pdfService.generatePdfFromTemplate('vehicle-registration', templateData);
+  }
+
+  async exportVehicleDecalPdf(placa: string, user?: AuthUser) {
+    // We check calcomanía pagada
+    await this.checkCalcomaniaPagada(placa, user);
+
+    const currentYear = new Date().getFullYear();
+    const decal = await this.vehicleDecalsRepository.findOne({
+      where: { vehicle: { placa }, anio: currentYear },
+      relations: ['vehicle', 'vehicle.catalog', 'vehicle.taxpayer', 'vehicle.taxpayer.profile', 'propertyCertificate', 'vehicleRegistration'],
+    });
+
+    if (!decal) {
+      throw new NotFoundException('Calcomanía no encontrada');
+    }
+
+    const vehicle = decal.vehicle;
+    const fullName = this.getNombreContribuyente(vehicle.taxpayer);
+    const qrRawData = `vehicle_decal|${vehicle.placa}|${vehicle.codigoUnicoIdentificador}|${vehicle.taxpayer.NIT}|${decal.anio}`;
+    const qrCode = await QRCode.toDataURL(qrRawData);
+
+    const templateData = {
+      decal,
+      vehicle,
+      propertyCertificate: decal.propertyCertificate,
+      vehicleRegistration: decal.vehicleRegistration,
+      fullName,
+      qrCode,
+      currentDate: decal.fechaImpresion ? new Date(decal.fechaImpresion).toLocaleDateString('es-GT') : new Date().toLocaleDateString('es-GT'),
+    };
+
+    return this.pdfService.generatePdfFromTemplate('vehicle-decal', templateData);
   }
 }

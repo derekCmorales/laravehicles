@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Certificado de Propiedad</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 30px;
+            color: #333;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        .header-logo {
+            font-size: 30px;
+            font-weight: bold;
+            color: #1b458d;
+        }
+        .header-title {
+            text-align: center;
+        }
+        .header-title h1 {
+            font-size: 24px;
+            margin: 0;
+            text-transform: uppercase;
+        }
+        .header-title h2 {
+            font-size: 16px;
+            margin: 5px 0 0 0;
+            font-weight: normal;
+        }
+        .header-info {
+            text-align: right;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .text-body {
+            font-size: 12px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+        .section {
+            background-color: #f0f0f0;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+        }
+        .section-title {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        td {
+            padding: 5px 0;
+            border-bottom: 1px solid #999;
+        }
+        .label {
+            width: 20%;
+        }
+        .value {
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 10px;
+        }
+        .signature {
+            border-bottom: 1px solid #000;
+            width: 300px;
+            margin: 0 auto 10px auto;
+            position: relative;
+            padding-bottom: 40px;
+        }
+        .qr-code {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 80px;
+            height: 80px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-logo">SAT</div>
+        <div class="header-title">
+            <h1>CERTIFICADO DE</h1>
+            <h2>PROPIEDAD DE VEHÍCULOS</h2>
+        </div>
+        <div class="header-info">
+            <div>SAT - 4071</div>
+            <div>No. {{ propertyCertificate.noCertificado }}</div>
+        </div>
+    </div>
+
+    <div class="text-body">
+        EL INFRASCRITO JEFE DEL REGISTRO FISCAL DE VEHÍCULOS CERTIFICA HABER TENIDO A LA VISTA LOS REGISTROS COMPUTARIZADOS EN LOS CUALES FIGURA LO SIGUIENTE:
+    </div>
+
+    <div class="section">
+        <div class="section-title">Datos del vehículo:</div>
+        <table>
+            <tr>
+                <td colspan="4">Código único identificador: <span class="value">{{ vehicle.codigoUnicoIdentificador }}</span></td>
+            </tr>
+            <tr>
+                <td class="label">Uso:</td>
+                <td class="value">{{ vehicle.uso }}</td>
+                <td class="label">Placa:</td>
+                <td class="value">{{ vehicle.placa }}</td>
+            </tr>
+            <tr>
+                <td class="label">Tipo:</td>
+                <td class="value">{{ vehicle.catalog.tipoVehiculo }}</td>
+                <td class="label">Marca:</td>
+                <td class="value">{{ vehicle.catalog.marca }}</td>
+            </tr>
+            <tr>
+                <td class="label">Línea o estilo:</td>
+                <td class="value">{{ vehicle.catalog.lineaEstilo }}</td>
+                <td class="label">Modelo:</td>
+                <td class="value">{{ vehicle.modelo }}</td>
+            </tr>
+            <tr>
+                <td class="label">VIN:</td>
+                <td class="value">{{ vehicle.vin }}</td>
+                <td class="label">Serie:</td>
+                <td class="value">{{ vehicle.serie }}</td>
+            </tr>
+            <tr>
+                <td class="label">Chasis:</td>
+                <td class="value">{{ vehicle.chasis }}</td>
+                <td class="label">Motor:</td>
+                <td class="value">{{ vehicle.motor }}</td>
+            </tr>
+            <tr>
+                <td class="label">Centímetros cúbicos:</td>
+                <td class="value">{{ vehicle.centimetrosCubicos }}</td>
+                <td class="label">Cilindros:</td>
+                <td class="value">{{ vehicle.cilindros }}</td>
+            </tr>
+            <tr>
+                <td class="label">Asientos:</td>
+                <td class="value">{{ vehicle.asientos }}</td>
+                <td class="label">Código ISCV:</td>
+                <td class="value">{{ vehicle.catalog.codigoISCV }}</td>
+            </tr>
+            <tr>
+                <td class="label">Combustible:</td>
+                <td class="value">{{ vehicle.combustible }}</td>
+                <td class="label">Tonelaje:</td>
+                <td class="value">{{ vehicle.tonelaje }}</td>
+            </tr>
+            <tr>
+                <td class="label">Color:</td>
+                <td class="value" colspan="3">{{ vehicle.color }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <div class="section-title">El vehículo descrito se encuentra registrado a nombre de:</div>
+        <table>
+            <tr>
+                <td colspan="4" style="text-align: center; border: none; font-size: 16px;" class="value">{{ fullName }}</td>
+            </tr>
+            <tr>
+                <td class="label">NIT:</td>
+                <td class="value">{{ vehicle.taxpayer.NIT }}</td>
+                <td class="label">CUI (DPI):</td>
+                <td class="value">{{ vehicle.taxpayer.CUI }}</td>
+            </tr>
+            <tr>
+                <td class="label" style="width: auto;">Domicilio Fiscal:</td>
+                <td colspan="3" class="value">{{ address }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Importado por:</div>
+        <table>
+            <tr>
+                <td class="label">NIT:</td>
+                <td class="value">{{ importerNit }}</td>
+                <td class="label">CUI:</td>
+                <td class="value">{{ importerCui }}</td>
+            </tr>
+            <tr>
+                <td class="label" style="width: auto;">Domicilio Fiscal:</td>
+                <td colspan="3" class="value">{{ importerAddress }}</td>
+            </tr>
+            <tr>
+                <td class="label" style="width: auto;">Póliza de importación No.</td>
+                <td class="value">{{ propertyCertificate.polizaImportacion }}</td>
+                <td class="label">De fecha:</td>
+                <td class="value">{{ propertyCertificate.fechaPoliza }}</td>
+            </tr>
+            <tr>
+                <td class="label" style="width: auto;">Aduana que liquidó:</td>
+                <td class="value">{{ propertyCertificate.aduanaLiquidadora }}</td>
+                <td class="label">Franquicia No:</td>
+                <td class="value">{{ propertyCertificate.franquiciaNo }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="footer">
+        <div style="position: relative;">
+            <div class="signature"></div>
+            <div>JEFE DEL REGISTRO FISCAL DE VEHÍCULOS - SAT</div>
+            {{#if qrCode}}
+            <img src="{{ qrCode }}" class="qr-code" alt="QR Code">
+            {{/if}}
+        </div>
+        <div style="text-align: left; margin-top: -30px; line-height: 1.5;">
+            <div>Usuario: {{ vehicle.taxpayer.NIT }}</div>
+            <div>Fecha: {{ currentDate }}</div>
+        </div>
+    </div>
+</body>
+</html>

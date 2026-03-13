@@ -10,6 +10,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { AppAuthGuard } from './auth/guards/auth.guard';
 import { CatalogsModule } from './catalogs/catalogs.module';
 import { VehiclesModule } from './vehicles/vehicles.module';
+import { PdfModule } from './pdf/pdf.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { VehiclesModule } from './vehicles/vehicles.module';
     AuthModule,
     CatalogsModule,
     VehiclesModule,
+    PdfModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: AppAuthGuard }],

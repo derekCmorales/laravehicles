@@ -10,11 +10,12 @@ import { VehicleDecal } from './entities/vehicleDecal.entity';
 import { PropertyCertificate } from './entities/propertyCertificate.entity';
 import { Catalog } from '../catalogs/entities/catalog.entity';
 import { Taxpayer } from '../users/entities/taxpayer.entity';
+import { PdfModule } from '../pdf/pdf.module';
 
 @Module({
   controllers: [VehiclesController],
   providers: [VehiclesService],
-  imports: [TypeOrmModule.forFeature([Vehicle, VehicleRegistration, VehicleDecal, PropertyCertificate, Catalog, Taxpayer]), CatalogsModule, UsersModule],
+  imports: [TypeOrmModule.forFeature([Vehicle, VehicleRegistration, VehicleDecal, PropertyCertificate, Catalog, Taxpayer]), CatalogsModule, UsersModule, PdfModule],
   exports: [VehiclesModule],
 })
 export class VehiclesModule {}

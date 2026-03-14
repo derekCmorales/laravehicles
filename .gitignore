@@ -40,7 +40,7 @@ frontend/.next/
 frontend/out/
 frontend/.vercel
 
-# Next.js build cache
+# Next.js build cache (Global)
 .next/
 out/
 
@@ -58,3 +58,4 @@ coverage/
 # Misc
 *.pem
 .turbo
+.turbo/

@@ -100,6 +100,8 @@ class ApiClient {
   }
 
   async createVehicle(data: Partial<Vehicle> & {
+    nit?: string;
+    codigoISCV?: string;
     propertyCertificate: Partial<PropertyCertificate>;
     vehicleRegistration: Partial<VehicleRegistration>;
   }): Promise<Vehicle> {

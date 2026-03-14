@@ -163,8 +163,8 @@ export class UsersService {
   }
 
   async findAllProfilesTaxpayers() {
-    return this.usersRepository.find({
-      relations: ['profile', 'profile.taxpayer'],
+    return this.taxpayersRepository.find({
+      relations: ['profile', 'profile.user', 'vehicles', 'vehicles.catalog'],
     });
   }
 

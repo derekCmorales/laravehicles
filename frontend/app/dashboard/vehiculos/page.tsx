@@ -54,11 +54,11 @@ function VehicleDetailDialog({
   const [isDownloadingCertificate, setIsDownloadingCertificate] = useState(false);
   const [isDownloadingRegistration, setIsDownloadingRegistration] = useState(false);
   const [isDownloadingDecal, setIsDownloadingDecal] = useState(false);
-  const { data: certificate } = useSWR<PropertyCertificate>(
+  const { data: certificate, error: certificateError } = useSWR<PropertyCertificate>(
     vehicle && open ? `certificate-${vehicle.placa}` : null,
     () => api.getPropertyCertificate(vehicle!.placa)
   );
-  const { data: registration } = useSWR<VehicleRegistration>(
+  const { data: registration, error: registrationError } = useSWR<VehicleRegistration>(
     vehicle && open ? `registration-${vehicle.placa}` : null,
     () => api.getVehicleRegistration(vehicle!.placa)
   );
@@ -241,7 +241,12 @@ function VehicleDetailDialog({
           </TabsContent>
 
           <TabsContent value="certificado" className="space-y-4">
-            {certificate ? (
+            {certificateError ? (
+              <div className="flex flex-col items-center justify-center py-8 text-destructive text-center">
+                <FileText className="mb-2 h-8 w-8" />
+                <p>No se pueden mostrar hasta que la tarjeta de circulación esté pagada.</p>
+              </div>
+            ) : certificate ? (
               <>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-1">
@@ -293,7 +298,12 @@ function VehicleDetailDialog({
           </TabsContent>
 
           <TabsContent value="tarjeta" className="space-y-4">
-            {registration ? (
+            {registrationError ? (
+              <div className="flex flex-col items-center justify-center py-8 text-destructive text-center">
+                <FileText className="mb-2 h-8 w-8" />
+                <p>No se pueden mostrar hasta que la tarjeta de circulación esté pagada.</p>
+              </div>
+            ) : registration ? (
               <>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-1">

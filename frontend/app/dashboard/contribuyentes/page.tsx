@@ -231,9 +231,9 @@ export default function ContribuyentesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredTaxpayers.map((taxpayer) => (
+                  {filteredTaxpayers.map((taxpayer, index) => (
                     <tr
-                      key={taxpayer.NIT}
+                      key={taxpayer.NIT || `taxpayer-row-${index}`}
                       className="border-b last:border-0 hover:bg-muted/50"
                     >
                       <td className="py-4">

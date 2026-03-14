@@ -28,12 +28,18 @@ interface NavItem {
   adminOnly?: boolean;
 }
 
-const navItems: NavItem[] = [
+const adminNavItems: NavItem[] = [
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Vehiculos", href: "/dashboard/vehiculos", icon: Car },
+  { label: "Calcomanias", href: "/dashboard/calcomanias", icon: Sticker },
+  { label: "Contribuyentes", href: "/dashboard/contribuyentes", icon: Users },
+  { label: "Catalogo ISCV", href: "/dashboard/catalogo", icon: BookOpen },
+];
+
+const userNavItems: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Mis Vehiculos", href: "/dashboard/vehiculos", icon: Car },
   { label: "Calcomanias", href: "/dashboard/calcomanias", icon: Sticker },
-  { label: "Contribuyentes", href: "/dashboard/contribuyentes", icon: Users, adminOnly: true },
-  { label: "Catalogo ISCV", href: "/dashboard/catalogo", icon: BookOpen, adminOnly: true },
 ];
 
 function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -46,7 +52,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
     router.push("/");
   };
 
-  const filteredNavItems = navItems.filter((item) => !item.adminOnly || isAdmin);
+  const filteredNavItems = isAdmin ? adminNavItems : userNavItems;
 
   return (
     <>

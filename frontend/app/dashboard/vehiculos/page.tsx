@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Car, Search, Plus, Eye, MoreHorizontal, FileText, Sticker } from "lucide-react";
+import { Car, Search, Plus, Eye, FileText, Sticker, Download, FileCheck } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,6 +51,9 @@ function VehicleDetailDialog({
 }) {
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isDownloadingCertificate, setIsDownloadingCertificate] = useState(false);
+  const [isDownloadingRegistration, setIsDownloadingRegistration] = useState(false);
+  const [isDownloadingDecal, setIsDownloadingDecal] = useState(false);
   const { data: certificate } = useSWR<PropertyCertificate>(
     vehicle && open ? `certificate-${vehicle.placa}` : null,
     () => api.getPropertyCertificate(vehicle!.placa)
@@ -78,6 +81,69 @@ function VehicleDetailDialog({
       });
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleDownloadCertificate = async () => {
+    if (!vehicle) return;
+    setIsDownloadingCertificate(true);
+    try {
+      await api.downloadPropertyCertificatePdf(vehicle.placa);
+      toast({
+        title: "Descarga exitosa",
+        description: "Certificado de propiedad descargado",
+        variant: "success",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Error al descargar certificado",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDownloadingCertificate(false);
+    }
+  };
+
+  const handleDownloadRegistration = async () => {
+    if (!vehicle) return;
+    setIsDownloadingRegistration(true);
+    try {
+      await api.downloadVehicleRegistrationPdf(vehicle.placa);
+      toast({
+        title: "Descarga exitosa",
+        description: "Tarjeta de circulacion descargada",
+        variant: "success",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Error al descargar tarjeta",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDownloadingRegistration(false);
+    }
+  };
+
+  const handleDownloadDecal = async () => {
+    if (!vehicle) return;
+    setIsDownloadingDecal(true);
+    try {
+      await api.downloadVehicleDecalPdf(vehicle.placa);
+      toast({
+        title: "Descarga exitosa",
+        description: "Calcomania descargada",
+        variant: "success",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Error al descargar calcomania",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDownloadingDecal(false);
     }
   };
 
@@ -157,46 +223,66 @@ function VehicleDetailDialog({
               </div>
             </div>
 
-            <div className="flex gap-2 pt-4">
+            <div className="flex flex-wrap gap-2 pt-4 border-t">
               <Button onClick={handleGenerateCalcomania} disabled={isGenerating}>
                 <Sticker className="mr-2 h-4 w-4" />
                 {isGenerating ? "Generando..." : "Generar Calcomania"}
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={handleDownloadDecal}
+                disabled={isDownloadingDecal}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                {isDownloadingDecal ? "Descargando..." : "Descargar Calcomania PDF"}
               </Button>
             </div>
           </TabsContent>
 
           <TabsContent value="certificado" className="space-y-4">
             {certificate ? (
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">No. Certificado</p>
-                  <p className="font-medium">{certificate.noCertificado}</p>
+              <>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">No. Certificado</p>
+                    <p className="font-medium">{certificate.noCertificado}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Fecha Emision</p>
+                    <p className="font-medium">
+                      {new Date(certificate.fechaEmision).toLocaleDateString("es-GT")}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Aduana Liquidadora</p>
+                    <p className="font-medium">{certificate.aduanaLiquidadora}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Poliza Importacion</p>
+                    <p className="font-medium">{certificate.polizaImportacion}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Fecha Poliza</p>
+                    <p className="font-medium">
+                      {new Date(certificate.fechaPoliza).toLocaleDateString("es-GT")}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Franquicia No.</p>
+                    <p className="font-medium">{certificate.franquiciaNo}</p>
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Fecha Emision</p>
-                  <p className="font-medium">
-                    {new Date(certificate.fechaEmision).toLocaleDateString("es-GT")}
-                  </p>
+                <div className="flex gap-2 pt-4 border-t">
+                  <Button 
+                    variant="outline" 
+                    onClick={handleDownloadCertificate}
+                    disabled={isDownloadingCertificate}
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    {isDownloadingCertificate ? "Descargando..." : "Descargar PDF"}
+                  </Button>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Aduana Liquidadora</p>
-                  <p className="font-medium">{certificate.aduanaLiquidadora}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Poliza Importacion</p>
-                  <p className="font-medium">{certificate.polizaImportacion}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Fecha Poliza</p>
-                  <p className="font-medium">
-                    {new Date(certificate.fechaPoliza).toLocaleDateString("es-GT")}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Franquicia No.</p>
-                  <p className="font-medium">{certificate.franquiciaNo}</p>
-                </div>
-              </div>
+              </>
             ) : (
               <div className="flex items-center justify-center py-8 text-muted-foreground">
                 <FileText className="mr-2 h-5 w-5" />
@@ -207,28 +293,40 @@ function VehicleDetailDialog({
 
           <TabsContent value="tarjeta" className="space-y-4">
             {registration ? (
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">No. Tarjeta</p>
-                  <p className="font-medium">{registration.noTarjeta}</p>
+              <>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">No. Tarjeta</p>
+                    <p className="font-medium">{registration.noTarjeta}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Fecha Registro</p>
+                    <p className="font-medium">
+                      {registration.fechaRegistro ? new Date(registration.fechaRegistro).toLocaleDateString("es-GT") : "-"}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Aduana Liquidadora</p>
+                    <p className="font-medium">{registration.aduanaLiquidadora || "-"}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Valida Hasta</p>
+                    <p className="font-medium">
+                      {registration.validaHasta ? new Date(registration.validaHasta).toLocaleDateString("es-GT") : "-"}
+                    </p>
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Codigo Identificador</p>
-                  <p className="font-mono text-sm">{registration.codigoUnicoIdentificador}</p>
+                <div className="flex gap-2 pt-4 border-t">
+                  <Button 
+                    variant="outline" 
+                    onClick={handleDownloadRegistration}
+                    disabled={isDownloadingRegistration}
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    {isDownloadingRegistration ? "Descargando..." : "Descargar PDF"}
+                  </Button>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Fecha Emision</p>
-                  <p className="font-medium">
-                    {new Date(registration.fechaEmision).toLocaleDateString("es-GT")}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Fecha Vencimiento</p>
-                  <p className="font-medium">
-                    {new Date(registration.fechaVencimiento).toLocaleDateString("es-GT")}
-                  </p>
-                </div>
-              </div>
+              </>
             ) : (
               <div className="flex items-center justify-center py-8 text-muted-foreground">
                 <FileText className="mr-2 h-5 w-5" />

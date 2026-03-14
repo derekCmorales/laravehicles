@@ -8,6 +8,10 @@ node_modules/
 # Env files
 .env
 .env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # Logs
 logs/
@@ -30,3 +34,27 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
+
+# Next.js (Frontend)
+frontend/.next/
+frontend/out/
+frontend/.vercel
+
+# Next.js build cache
+.next/
+out/
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Testing
+coverage/
+.nyc_output/
+
+# Misc
+*.pem
+.turbo

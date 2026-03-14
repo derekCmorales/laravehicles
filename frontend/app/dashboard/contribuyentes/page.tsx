@@ -165,11 +165,13 @@ export default function ContribuyentesPage() {
   const filteredTaxpayers = taxpayers.filter((t) => {
     const searchLower = search.toLowerCase();
     const fullName = t.profile
-      ? `${t.profile.primerNombre} ${t.profile.primerApellido}`.toLowerCase()
+      ? `${t.profile.primerNombre || ""} ${t.profile.primerApellido || ""}`.toLowerCase()
       : "";
+    const nit = (t.NIT || "").toLowerCase();
+    const cui = (t.CUI || "").toLowerCase();
     return (
-      t.NIT.toLowerCase().includes(searchLower) ||
-      t.CUI.toLowerCase().includes(searchLower) ||
+      nit.includes(searchLower) ||
+      cui.includes(searchLower) ||
       fullName.includes(searchLower)
     );
   });

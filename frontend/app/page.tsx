@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Car, Shield, Users, FileText, Lock, User } from "lucide-react";
+import { Car, Lock, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -98,76 +98,14 @@ function LoginForm() {
   );
 }
 
-function FeatureCard({ icon: Icon, title, description }: { icon: typeof Car; title: string; description: string }) {
-  return (
-    <div className="flex items-start gap-4 rounded-lg border border-border/50 bg-card/50 p-4 backdrop-blur-sm">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-        <Icon className="h-5 w-5 text-primary" />
-      </div>
-      <div>
-        <h3 className="font-semibold text-foreground">{title}</h3>
-        <p className="text-sm text-muted-foreground">{description}</p>
-      </div>
-    </div>
-  );
-}
-
 function HomePage() {
   return (
-    <div className="flex min-h-screen">
-      {/* Left Side - Features */}
-      <div className="hidden w-1/2 bg-gradient-to-br from-primary to-primary/80 p-12 lg:flex lg:flex-col lg:justify-between">
-        <div>
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10">
-              <Car className="h-6 w-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold text-white">SAT Vehiculos</span>
-          </div>
-          <h1 className="mt-12 text-4xl font-bold leading-tight text-white text-balance">
-            Sistema de Gestion Vehicular
-          </h1>
-          <p className="mt-4 text-lg text-white/80">
-            Superintendencia de Administracion Tributaria - Modulo de control y registro de vehiculos
-          </p>
-        </div>
-
-        <div className="space-y-4">
-          <FeatureCard
-            icon={FileText}
-            title="Registro de Vehiculos"
-            description="Gestiona toda la informacion de tu flota vehicular en un solo lugar"
-          />
-          <FeatureCard
-            icon={Shield}
-            title="Certificados y Calcomanias"
-            description="Genera y administra certificados de propiedad y calcomanias de circulacion"
-          />
-          <FeatureCard
-            icon={Users}
-            title="Gestion de Contribuyentes"
-            description="Administra perfiles de contribuyentes y sus vehiculos asociados"
-          />
-        </div>
-
-        <p className="text-sm text-white/60">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-muted/50 to-muted p-4">
+      <div className="w-full max-w-md">
+        <LoginForm />
+        <p className="mt-6 text-center text-xs text-muted-foreground">
           Sistema oficial de la Superintendencia de Administracion Tributaria
         </p>
-      </div>
-
-      {/* Right Side - Login */}
-      <div className="flex w-full items-center justify-center bg-muted/30 p-8 lg:w-1/2">
-        <div className="w-full max-w-md">
-          {/* Mobile Header */}
-          <div className="mb-8 text-center lg:hidden">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary">
-              <Car className="h-8 w-8 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-foreground">SAT Vehiculos</h1>
-            <p className="text-muted-foreground">Sistema de Gestion Vehicular</p>
-          </div>
-          <LoginForm />
-        </div>
       </div>
     </div>
   );

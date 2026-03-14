@@ -17,7 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 import { useToast } from "@/components/ui/toaster";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 import Link from "next/link";
 import type { Vehicle, PropertyCertificate, VehicleRegistration } from "@/lib/types";
 import { EstadoVehiculo } from "@/lib/types";
@@ -68,9 +68,10 @@ function VehicleDetailDialog({
     setIsGenerating(true);
     try {
       await api.generateCalcomania(vehicle.placa);
+      mutate("vehicles");
       toast({
         title: "Calcomania generada",
-        description: "La calcomania ha sido generada exitosamente",
+        description: "La calcomania ha sido generada. Ve a la seccion de Calcomanias para pagarla.",
         variant: "success",
       });
     } catch (error) {

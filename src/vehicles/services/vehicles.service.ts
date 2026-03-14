@@ -111,11 +111,11 @@ export class VehiclesService {
 
   async findAllVehicles(user?: AuthUser) {
     if (user?.role === Role.Admin) {
-      return this.vehiclesRepository.find({ relations: ['catalog', 'taxpayer', 'taxpayer.profile'] });
+      return this.vehiclesRepository.find({ relations: ['catalog', 'taxpayer', 'taxpayer.profile', 'vehicleDecals'] });
     }
 
     const nit = await this.getNitByUser(user);
-    return this.vehiclesRepository.find({ where: { taxpayer: { NIT: nit } }, relations: ['catalog', 'taxpayer', 'taxpayer.profile'] });
+    return this.vehiclesRepository.find({ where: { taxpayer: { NIT: nit } }, relations: ['catalog', 'taxpayer', 'taxpayer.profile', 'vehicleDecals'] });
   }
 
   async findOneVehicle(placa: string, user?: AuthUser) {

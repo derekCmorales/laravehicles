@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Sticker, Car, CreditCard, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { Sticker, Car, CreditCard, CheckCircle, Clock, AlertCircle, Download } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -136,10 +136,14 @@ function DecalCard({
   vehicle,
   decal,
   onPay,
+  onDownload,
+  isDownloading,
 }: {
   vehicle: Vehicle;
   decal: VehicleDecal;
   onPay: () => void;
+  onDownload: () => void;
+  isDownloading: boolean;
 }) {
   return (
     <div className="rounded-lg border bg-card p-4 transition-shadow hover:shadow-md">
@@ -177,21 +181,35 @@ function DecalCard({
         )}
       </div>
 
-      {decal.estado === "PENDIENTE" && (
-        <Button className="mt-4 w-full" onClick={onPay}>
-          <CreditCard className="mr-2 h-4 w-4" />
-          Pagar Calcomania
-        </Button>
-      )}
+      <div className="mt-4 flex gap-2">
+        {decal.estado === "PENDIENTE" ? (
+          <Button className="flex-1" onClick={onPay}>
+            <CreditCard className="mr-2 h-4 w-4" />
+            Pagar Calcomania
+          </Button>
+        ) : decal.estado === "PAGADO" && (
+          <Button 
+            variant="outline" 
+            className="flex-1" 
+            onClick={onDownload}
+            disabled={isDownloading}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            {isDownloading ? "Descargando..." : "Descargar PDF"}
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
 
 export default function CalcomaniasPage() {
   const { isAdmin } = useAuth();
+  const { toast } = useToast();
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [selectedDecal, setSelectedDecal] = useState<VehicleDecal | null>(null);
   const [paymentOpen, setPaymentOpen] = useState(false);
+  const [downloadingPlaca, setDownloadingPlaca] = useState<string | null>(null);
 
   const { data: vehicles = [], isLoading } = useSWR<Vehicle[]>("vehicles", () =>
     api.getAllVehicles()
@@ -206,6 +224,26 @@ export default function CalcomaniasPage() {
     setSelectedVehicle(vehicle);
     setSelectedDecal(decal);
     setPaymentOpen(true);
+  };
+
+  const handleDownload = async (placa: string) => {
+    setDownloadingPlaca(placa);
+    try {
+      await api.downloadVehicleDecalPdf(placa);
+      toast({
+        title: "Descarga exitosa",
+        description: "Calcomania descargada correctamente",
+        variant: "success",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Error al descargar",
+        variant: "destructive",
+      });
+    } finally {
+      setDownloadingPlaca(null);
+    }
   };
 
   return (
@@ -258,6 +296,8 @@ export default function CalcomaniasPage() {
                 vehicle={vehicle}
                 decal={decal}
                 onPay={() => handlePay(vehicle, decal)}
+                onDownload={() => handleDownload(vehicle.placa)}
+                isDownloading={downloadingPlaca === vehicle.placa}
               />
             ))
           )

@@ -180,6 +180,79 @@ class ApiClient {
       method: "DELETE",
     });
   }
+
+  // PDF Downloads
+  async downloadPropertyCertificatePdf(placa: string): Promise<void> {
+    const token = this.getToken();
+    const response = await fetch(
+      `${API_BASE_URL}/vehicles/${placa}/property-certificate/pdf`,
+      {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Error al descargar certificado de propiedad");
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Certificado_Propiedad_${placa}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  }
+
+  async downloadVehicleRegistrationPdf(placa: string): Promise<void> {
+    const token = this.getToken();
+    const response = await fetch(
+      `${API_BASE_URL}/vehicles/${placa}/vehicle-registration/pdf`,
+      {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Error al descargar tarjeta de circulacion");
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Tarjeta_Circulacion_${placa}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  }
+
+  async downloadVehicleDecalPdf(placa: string): Promise<void> {
+    const token = this.getToken();
+    const response = await fetch(
+      `${API_BASE_URL}/vehicles/${placa}/calcomania/pdf`,
+      {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Error al descargar calcomania");
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Calcomania_${placa}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  }
 }
 
 export const api = new ApiClient();

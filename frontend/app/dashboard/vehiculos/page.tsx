@@ -64,6 +64,8 @@ function VehicleDetailDialog({
   const [isDownloadingCertificate, setIsDownloadingCertificate] = useState(false);
   const [isDownloadingRegistration, setIsDownloadingRegistration] = useState(false);
   const [isDownloadingDecal, setIsDownloadingDecal] = useState(false);
+  const [isInactivating, setIsInactivating] = useState(false);
+  const [showInactivateConfirm, setShowInactivateConfirm] = useState(false);
   const { data: certificate, error: certificateError } = useSWR<PropertyCertificate>(
     vehicle && open ? `certificate-${vehicle.placa}` : null,
     () => api.getPropertyCertificate(vehicle!.placa)

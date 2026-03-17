@@ -3,12 +3,11 @@
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Car,
   LayoutDashboard,
   Users,
-  FileText,
-  Settings,
   LogOut,
   Menu,
   X,
@@ -19,7 +18,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AuthProvider, useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
-import { Role } from "@/lib/types";
 
 interface NavItem {
   label: string;
@@ -73,11 +71,15 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
       >
         {/* Logo */}
         <div className="flex h-16 items-center justify-between border-b px-4">
-          <Link href="/dashboard" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-              <Car className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="text-lg font-bold text-foreground">SAT Vehiculos</span>
+          <Link href="/dashboard" className="flex items-center gap-2">
+            <Image
+              src="/logo.png"
+              alt="LaraVehicles"
+              width={140}
+              height={40}
+              className="h-10 w-auto"
+              priority
+            />
           </Link>
           <Button variant="ghost" size="icon" className="lg:hidden" onClick={onClose}>
             <X className="h-5 w-5" />
@@ -153,7 +155,7 @@ function Header({ onMenuClick }: { onMenuClick: () => void }) {
       </div>
       <div className="flex items-center gap-2">
         <span className="hidden text-sm text-muted-foreground sm:inline">
-          Sistema de Gestion Vehicular
+          LaraVehicles
         </span>
       </div>
     </header>

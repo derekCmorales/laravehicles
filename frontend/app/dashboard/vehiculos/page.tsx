@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Car, Search, Plus, Eye, FileText, Sticker, Download, FileCheck } from "lucide-react";
+import { Car, Search, Plus, Eye, FileText, Sticker, Download, Ban, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 import { useToast } from "@/components/ui/toaster";
@@ -21,6 +28,7 @@ import useSWR, { mutate } from "swr";
 import Link from "next/link";
 import type { Vehicle, PropertyCertificate, VehicleRegistration } from "@/lib/types";
 import { EstadoVehiculo } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 function VehicleStatusBadge({ estado }: { estado: EstadoVehiculo }) {
   const variants: Record<EstadoVehiculo, "success" | "destructive" | "warning" | "secondary"> = {
@@ -44,16 +52,20 @@ function VehicleDetailDialog({
   vehicle,
   open,
   onOpenChange,
+  isAdmin,
 }: {
   vehicle: Vehicle | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  isAdmin: boolean;
 }) {
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDownloadingCertificate, setIsDownloadingCertificate] = useState(false);
   const [isDownloadingRegistration, setIsDownloadingRegistration] = useState(false);
   const [isDownloadingDecal, setIsDownloadingDecal] = useState(false);
+  const [isInactivating, setIsInactivating] = useState(false);
+  const [showInactivateConfirm, setShowInactivateConfirm] = useState(false);
   const { data: certificate } = useSWR<PropertyCertificate>(
     vehicle && open ? `certificate-${vehicle.placa}` : null,
     () => api.getPropertyCertificate(vehicle!.placa)
@@ -148,6 +160,30 @@ function VehicleDetailDialog({
     }
   };
 
+  const handleInactivateVehicle = async () => {
+    if (!vehicle) return;
+    setIsInactivating(true);
+    try {
+      await api.inactivateVehicle(vehicle.placa);
+      mutate("vehicles");
+      toast({
+        title: "Vehiculo inactivado",
+        description: `El vehiculo ${vehicle.placa} ha sido marcado como inactivo administrativamente`,
+        variant: "success",
+      });
+      setShowInactivateConfirm(false);
+      onOpenChange(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Error al inactivar vehiculo",
+        variant: "destructive",
+      });
+    } finally {
+      setIsInactivating(false);
+    }
+  };
+
   if (!vehicle) return null;
 
   return (
@@ -166,10 +202,11 @@ function VehicleDetailDialog({
         </DialogHeader>
 
         <Tabs defaultValue="general" className="mt-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className={cn("grid w-full", isAdmin ? "grid-cols-4" : "grid-cols-3")}>
             <TabsTrigger value="general">General</TabsTrigger>
             <TabsTrigger value="certificado">Certificado</TabsTrigger>
             <TabsTrigger value="tarjeta">Tarjeta</TabsTrigger>
+            {isAdmin && <TabsTrigger value="admin">Admin</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="general" className="space-y-4">
@@ -335,6 +372,83 @@ function VehicleDetailDialog({
               </div>
             )}
           </TabsContent>
+
+          {isAdmin && (
+            <TabsContent value="admin" className="space-y-4">
+              <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-destructive mt-0.5" />
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-destructive">Zona de Administracion</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Las acciones en esta seccion pueden afectar el estado del vehiculo de forma permanente.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <h4 className="font-medium">Estado actual del vehiculo</h4>
+                  <div className="flex items-center gap-2">
+                    <VehicleStatusBadge estado={vehicle.estado} />
+                    <span className="text-sm text-muted-foreground">
+                      {vehicle.estado === EstadoVehiculo.ACTIVO && "El vehiculo esta activo y puede circular normalmente"}
+                      {vehicle.estado === EstadoVehiculo.INACTIVO_ADMINISTRATIVO && "El vehiculo ha sido inactivado por razones administrativas"}
+                      {vehicle.estado === EstadoVehiculo.ROBADO && "El vehiculo ha sido reportado como robado"}
+                      {vehicle.estado === EstadoVehiculo.DESTRUIDO && "El vehiculo ha sido declarado como destruido"}
+                    </span>
+                  </div>
+                </div>
+
+                {vehicle.estado === EstadoVehiculo.ACTIVO && (
+                  <div className="space-y-3 pt-4 border-t">
+                    <h4 className="font-medium">Inactivar vehiculo</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Seleccione esta opcion para marcar el vehiculo como inactivo por razones administrativas, robo o destruccion.
+                    </p>
+                    
+                    {!showInactivateConfirm ? (
+                      <Button 
+                        variant="destructive" 
+                        onClick={() => setShowInactivateConfirm(true)}
+                      >
+                        <Ban className="mr-2 h-4 w-4" />
+                        Inactivar Vehiculo
+                      </Button>
+                    ) : (
+                      <div className="rounded-lg border border-destructive p-4 space-y-3">
+                        <p className="text-sm font-medium text-destructive">
+                          Confirmar inactivacion del vehiculo {vehicle.placa}?
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Esta accion marcara el vehiculo como INACTIVO_ADMINISTRATIVO. El vehiculo no podra generar nuevas calcomanias.
+                        </p>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={handleInactivateVehicle}
+                            disabled={isInactivating}
+                          >
+                            {isInactivating ? "Inactivando..." : "Confirmar Inactivacion"}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowInactivateConfirm(false)}
+                            disabled={isInactivating}
+                          >
+                            Cancelar
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+          )}
         </Tabs>
       </DialogContent>
     </Dialog>
@@ -465,6 +579,7 @@ export default function VehiculosPage() {
         vehicle={selectedVehicle}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
+        isAdmin={isAdmin}
       />
     </div>
   );

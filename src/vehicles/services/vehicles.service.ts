@@ -233,9 +233,15 @@ export class VehiclesService {
   }
 
   async inactivateVehicle(placa: string) {
-    const vehicle = await this.findOneVehicle(placa, { role: Role.Admin });
-    vehicle.estado = EstadoVehiculo.INACTIVO_ADMINISTRATIVO;
-    return this.vehiclesRepository.save(vehicle);
+  const vehicle = await this.findOneVehicle(placa, { role: Role.Admin });
+  vehicle.estado = EstadoVehiculo.INACTIVO_ADMINISTRATIVO;
+  return this.vehiclesRepository.save(vehicle);
+  }
+
+  async activateVehicle(placa: string) {
+  const vehicle = await this.findOneVehicle(placa, { role: Role.Admin });
+  vehicle.estado = EstadoVehiculo.ACTIVO;
+  return this.vehiclesRepository.save(vehicle);
   }
 
   private async checkCalcomaniaPagada(placa: string, user?: AuthUser) {

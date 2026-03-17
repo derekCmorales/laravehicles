@@ -65,6 +65,7 @@ function VehicleDetailDialog({
   const [isDownloadingRegistration, setIsDownloadingRegistration] = useState(false);
   const [isDownloadingDecal, setIsDownloadingDecal] = useState(false);
   const [isInactivating, setIsInactivating] = useState(false);
+  const [isActivating, setIsActivating] = useState(false);
   const [showInactivateConfirm, setShowInactivateConfirm] = useState(false);
   const { data: certificate, error: certificateError } = useSWR<PropertyCertificate>(
     vehicle && open ? `certificate-${vehicle.placa}` : null,
@@ -181,6 +182,29 @@ function VehicleDetailDialog({
       });
     } finally {
       setIsInactivating(false);
+    }
+  };
+
+  const handleActivateVehicle = async () => {
+    if (!vehicle) return;
+    setIsActivating(true);
+    try {
+      await api.activateVehicle(vehicle.placa);
+      mutate("vehicles");
+      toast({
+        title: "Vehiculo activado",
+        description: `El vehiculo ${vehicle.placa} ha sido reactivado exitosamente`,
+        variant: "success",
+      });
+      onOpenChange(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Error al activar vehiculo",
+        variant: "destructive",
+      });
+    } finally {
+      setIsActivating(false);
     }
   };
 
@@ -454,6 +478,23 @@ function VehicleDetailDialog({
                         </div>
                       </div>
                     )}
+                  </div>
+                )}
+
+                {vehicle.estado !== EstadoVehiculo.ACTIVO && (
+                  <div className="space-y-3 pt-4 border-t">
+                    <h4 className="font-medium">Reactivar vehiculo</h4>
+                    <p className="text-sm text-muted-foreground">
+                      El vehiculo actualmente esta inactivo. Puede reactivarlo para que vuelva a estar operativo.
+                    </p>
+                    <Button 
+                      variant="default" 
+                      onClick={handleActivateVehicle}
+                      disabled={isActivating}
+                    >
+                      <Car className="mr-2 h-4 w-4" />
+                      {isActivating ? "Activando..." : "Reactivar Vehiculo"}
+                    </Button>
                   </div>
                 )}
               </div>

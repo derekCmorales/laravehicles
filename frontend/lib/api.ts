@@ -127,6 +127,12 @@ class ApiClient {
     });
   }
 
+  async activateVehicle(placa: string): Promise<Vehicle> {
+    return this.request<Vehicle>(`/vehicles/${placa}/activar`, {
+      method: "PATCH",
+    });
+  }
+
   async getPropertyCertificate(placa: string): Promise<PropertyCertificate> {
     return this.request<PropertyCertificate>(
       `/vehicles/${placa}/property-certificate`

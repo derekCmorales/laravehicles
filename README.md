@@ -1,98 +1,300 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# LaraVehicles
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Sistema de Gestion Vehicular - Aplicacion completa con backend NestJS y frontend Next.js.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Estructura del Proyecto
 
-## Description
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
-
-```bash
-$ npm install
+```
+laravehicles/
+├── src/                    # Backend (NestJS)
+│   ├── auth/              # Autenticacion y autorizacion
+│   ├── catalogs/          # Catalogo ISCV (marcas/modelos)
+│   ├── database/          # Configuracion TypeORM
+│   ├── pdf/               # Generacion de PDFs
+│   ├── users/             # Usuarios, perfiles, contribuyentes
+│   └── vehicles/          # Vehiculos, certificados, calcomanias
+├── frontend/              # Frontend (Next.js)
+│   ├── app/               # App Router pages
+│   ├── components/        # Componentes UI
+│   └── lib/               # Utilidades, API client, tipos
+└── vercel.json            # Configuracion de deploy
 ```
 
-## Compile and run the project
+## Requisitos Previos
+
+- Node.js >= 20.0.0
+- PostgreSQL >= 14
+- npm o yarn
+
+---
+
+## 1. Configuracion de la Base de Datos
+
+### Crear la base de datos en PostgreSQL:
 
 ```bash
-# development
-$ npm run start
+# Conectar a PostgreSQL
+psql -U postgres
 
-# watch mode
-$ npm run start:dev
+# Crear la base de datos
+CREATE DATABASE laravehicles;
 
-# production mode
-$ npm run start:prod
+# Salir
+\q
 ```
 
-## Run tests
+### Opcion alternativa con Docker:
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+docker run --name laravehicles-db \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=laravehicles \
+  -p 5432:5432 \
+  -d postgres:16
 ```
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## 2. Instalacion del Backend (NestJS)
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### Paso 1: Clonar el repositorio
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+git clone https://github.com/derekCmorales/laravehicles.git
+cd laravehicles
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Paso 2: Instalar dependencias
 
-## Resources
+```bash
+npm install
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+### Paso 3: Configurar variables de entorno
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```bash
+# Copiar el archivo de ejemplo
+cp .env-example .env
+```
 
-## Support
+Editar el archivo `.env` con tus credenciales:
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```env
+PORT=3005
+JWT_SECRET=tu-clave-secreta-segura-cambiar-en-produccion
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=laravehicles
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+```
 
-## Stay in touch
+### Paso 4: Ejecutar migraciones (si existen)
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```bash
+npm run migrations:run
+```
 
-## License
+> Nota: Si es la primera vez y no hay migraciones, el backend creara las tablas automaticamente con `synchronize: true` (solo en desarrollo).
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+### Paso 5: Iniciar el backend
+
+```bash
+# Modo desarrollo (con hot-reload)
+npm run start:dev
+
+# Modo produccion
+npm run build
+npm run start:prod
+```
+
+El backend estara disponible en: `http://localhost:3005`
+
+### Documentacion API (Swagger)
+
+Una vez iniciado, accede a la documentacion en:
+- `http://localhost:3005/docs` - Swagger UI
+
+---
+
+## 3. Instalacion del Frontend (Next.js)
+
+### Paso 1: Navegar a la carpeta frontend
+
+```bash
+cd frontend
+```
+
+### Paso 2: Instalar dependencias
+
+```bash
+npm install
+```
+
+### Paso 3: Configurar variables de entorno
+
+```bash
+# Crear archivo de configuracion
+cp .env.example .env.local
+```
+
+Si no existe `.env.example`, crear `.env.local` manualmente:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3005
+```
+
+### Paso 4: Iniciar el frontend
+
+```bash
+# Modo desarrollo
+npm run dev
+
+# Modo produccion
+npm run build
+npm run start
+```
+
+El frontend estara disponible en: `http://localhost:3000`
+
+---
+
+## 4. Ejecucion Completa (Ambos Modulos)
+
+### Terminal 1 - Backend:
+
+```bash
+cd laravehicles
+npm run start:dev
+```
+
+### Terminal 2 - Frontend:
+
+```bash
+cd laravehicles/frontend
+npm run dev
+```
+
+---
+
+## 5. Usuarios y Roles
+
+El sistema tiene 2 roles:
+
+| Rol | Permisos |
+|-----|----------|
+| **ADMIN** | Gestionar todos los vehiculos, contribuyentes, catalogo ISCV, inactivar vehiculos |
+| **USER** | Ver sus propios vehiculos, solicitar calcomanias, descargar PDFs |
+
+### Crear usuario administrador
+
+Puedes crear un usuario admin directamente en la base de datos o mediante la API:
+
+```bash
+# Via API (registro)
+curl -X POST http://localhost:3005/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "admin",
+    "password": "admin123",
+    "role": "ADMIN"
+  }'
+```
+
+---
+
+## 6. Comandos Utiles
+
+### Backend
+
+| Comando | Descripcion |
+|---------|-------------|
+| `npm run start:dev` | Iniciar en modo desarrollo |
+| `npm run start:prod` | Iniciar en modo produccion |
+| `npm run build` | Compilar para produccion |
+| `npm run lint` | Ejecutar linter |
+| `npm run test` | Ejecutar tests |
+| `npm run migrations:run` | Ejecutar migraciones |
+| `npm run migrations:generate` | Generar nueva migracion |
+
+### Frontend
+
+| Comando | Descripcion |
+|---------|-------------|
+| `npm run dev` | Iniciar en modo desarrollo |
+| `npm run build` | Compilar para produccion |
+| `npm run start` | Iniciar servidor de produccion |
+| `npm run lint` | Ejecutar linter |
+
+---
+
+## 7. Deploy en Produccion
+
+### Frontend en Vercel
+
+1. Conecta tu repositorio en [vercel.com](https://vercel.com)
+2. El `vercel.json` ya configura el root directory como `frontend`
+3. Agrega la variable de entorno `NEXT_PUBLIC_API_URL` con la URL del backend
+
+### Backend en Railway/Render
+
+1. Conecta tu repositorio
+2. Configura las variables de entorno:
+   - `PORT`
+   - `JWT_SECRET`
+   - `POSTGRES_HOST`
+   - `POSTGRES_PORT`
+   - `POSTGRES_DB`
+   - `POSTGRES_USER`
+   - `POSTGRES_PASSWORD`
+3. Comando de build: `npm run build`
+4. Comando de start: `npm run start:prod`
+
+---
+
+## 8. Funcionalidades Principales
+
+- **Autenticacion JWT** - Login seguro con tokens
+- **Gestion de Vehiculos** - CRUD completo con estados (Activo, Inactivo, Robado, Destruido)
+- **Certificados de Propiedad** - Generacion y descarga en PDF
+- **Tarjetas de Circulacion** - Generacion y descarga en PDF
+- **Calcomanias** - Solicitud, pago y descarga en PDF
+- **Catalogo ISCV** - Administracion de marcas, modelos y valores
+- **Contribuyentes** - Gestion de perfiles y NIT/CUI
+
+---
+
+## 9. Troubleshooting
+
+### Error: ECONNREFUSED PostgreSQL
+```bash
+# Verificar que PostgreSQL este corriendo
+sudo systemctl status postgresql
+# o con Docker
+docker ps
+```
+
+### Error: Puerto en uso
+```bash
+# Cambiar el puerto en .env
+PORT=3006
+```
+
+### Error: Migraciones fallidas
+```bash
+# Verificar conexion a la base de datos
+psql -h localhost -U postgres -d laravehicles
+```
+
+### Frontend no conecta con backend
+```bash
+# Verificar que NEXT_PUBLIC_API_URL sea correcto en .env.local
+# El backend debe tener CORS habilitado (ya esta configurado)
+```
+
+---
+
+## Licencia
+
+MIT

@@ -41,6 +41,12 @@ export class VehiclesController {
     return this.vehiclesService.inactivateVehicle(placa);
   }
 
+  @Auth(Role.Admin)
+  @Patch(':placa/activar')
+  activateVehicle(@Param('placa') placa: string) {
+    return this.vehiclesService.activateVehicle(placa);
+  }
+
   @Auth(Role.Admin, Role.User)
   @Get(':placa/property-certificate')
   findPropertyCertificateByPlaca(@Param('placa') placa: string, @Req() req: Request) {

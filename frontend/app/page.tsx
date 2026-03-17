@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Car, Lock, User } from "lucide-react";
+import Image from "next/image";
+import { Lock, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,7 +27,7 @@ function LoginForm() {
       await login({ username, password });
       toast({
         title: "Inicio de sesion exitoso",
-        description: "Bienvenido al sistema SAT Vehiculos",
+        description: "Bienvenido a LaraVehicles",
         variant: "success",
       });
       router.push("/dashboard");
@@ -44,10 +45,16 @@ function LoginForm() {
   return (
     <Card className="w-full max-w-md shadow-xl">
       <CardHeader className="space-y-1 text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary">
-          <Car className="h-8 w-8 text-primary-foreground" />
+        <div className="mx-auto mb-2">
+          <Image
+            src="/logo.png"
+            alt="LaraVehicles"
+            width={120}
+            height={120}
+            className="h-24 w-auto"
+            priority
+          />
         </div>
-        <CardTitle className="text-2xl font-bold">SAT Vehiculos</CardTitle>
         <CardDescription>
           Ingrese sus credenciales para acceder al sistema
         </CardDescription>
@@ -104,7 +111,7 @@ function HomePage() {
       <div className="w-full max-w-md">
         <LoginForm />
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Sistema oficial de la Superintendencia de Administracion Tributaria
+          LaraVehicles - Sistema de Gestion Vehicular
         </p>
       </div>
     </div>

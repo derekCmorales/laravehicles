@@ -2,24 +2,24 @@
 
 @theme inline {
   --color-background: #ffffff;
-  --color-foreground: #0f172a;
+  --color-foreground: #1a1f3d;
   --color-card: #ffffff;
-  --color-card-foreground: #0f172a;
+  --color-card-foreground: #1a1f3d;
   --color-popover: #ffffff;
-  --color-popover-foreground: #0f172a;
-  --color-primary: #1d4ed8;
+  --color-popover-foreground: #1a1f3d;
+  --color-primary: #1a1f3d;
   --color-primary-foreground: #ffffff;
   --color-secondary: #f1f5f9;
-  --color-secondary-foreground: #0f172a;
+  --color-secondary-foreground: #1a1f3d;
   --color-muted: #f8fafc;
   --color-muted-foreground: #64748b;
-  --color-accent: #dbeafe;
-  --color-accent-foreground: #1e40af;
+  --color-accent: #e8eaf2;
+  --color-accent-foreground: #1a1f3d;
   --color-destructive: #dc2626;
   --color-destructive-foreground: #ffffff;
   --color-border: #e2e8f0;
   --color-input: #e2e8f0;
-  --color-ring: #1d4ed8;
+  --color-ring: #1a1f3d;
   --color-success: #16a34a;
   --color-success-foreground: #ffffff;
   --color-warning: #f59e0b;

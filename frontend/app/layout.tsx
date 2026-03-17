@@ -9,13 +9,13 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "SAT Vehiculos - Sistema de Gestion Vehicular",
+  title: "LaraVehicles - Sistema de Gestion Vehicular",
   description:
-    "Sistema de gestion de vehiculos, calcomanias y registro vehicular de la Superintendencia de Administracion Tributaria",
+    "Sistema de gestion de vehiculos, calcomanias y registro vehicular",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#1d4ed8",
+  themeColor: "#1a1f3d",
   width: "device-width",
   initialScale: 1,
 };

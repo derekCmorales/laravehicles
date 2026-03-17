@@ -230,9 +230,9 @@ export default function NuevoVehiculoPage() {
                         <SelectValue placeholder="Seleccionar contribuyente" />
                       </SelectTrigger>
                       <SelectContent>
-                        {taxpayers.map((t) => (
-                          <SelectItem key={t.NIT} value={t.NIT}>
-                            {t.NIT} - {t.profile?.primerNombre} {t.profile?.primerApellido}
+                        {taxpayers.map((t, index) => (
+                          <SelectItem key={t.NIT || `taxpayer-${index}`} value={t.NIT}>
+                            <span>{t.NIT} - {t.profile?.primerNombre} {t.profile?.primerApellido}</span>
                           </SelectItem>
                         ))}
                       </SelectContent>

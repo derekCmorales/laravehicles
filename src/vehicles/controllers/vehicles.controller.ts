@@ -31,8 +31,14 @@ export class VehiclesController {
 
   @Auth(Role.Admin)
   @Patch(':placa')
-  updateVehicleWithPropertyRegistration(@Param('placa') placa: string, @Body() UpdateVehicleWithPropertyRegistrationDto: UpdateVehicleWithPropertyRegistrationDto) {
-    return this.vehiclesService.updateVehicleWithPropertyRegistration(placa, UpdateVehicleWithPropertyRegistrationDto);
+  updateVehicleWithPropertyRegistration(@Param('placa') placa: string, @Body() UpdateVehicleWithPropertyRegistrationDto: UpdateVehicleWithPropertyRegistrationDto, @Req() req: Request) {
+    return this.vehiclesService.updateVehicleWithPropertyRegistration(placa, UpdateVehicleWithPropertyRegistrationDto, req.user);
+  }
+
+  @Auth(Role.Admin, Role.User)
+  @Get(':placa/historial')
+  getVehicleHistory(@Param('placa') placa: string, @Req() req: Request) {
+    return this.vehiclesService.getVehicleHistory(placa, req.user);
   }
 
   @Auth(Role.Admin)

@@ -1,5 +1,5 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { IsEnum, IsNotEmpty, IsNumber, IsString, ValidateNested } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { CreatePropertyCertificateDto } from './propertyCertificate.dto';
 import { Type } from 'class-transformer';
 import { CreateVehicleRegistrationDto } from './vehicleRegistration.dto';
@@ -94,17 +94,18 @@ export class CreateVehicleWithPropertyRegistrationDto extends CreateVehicleDto {
 export class UpdateVehicleDto extends PartialType(CreateVehicleDto) {}
 
 export class UpdateVehicleWithPropertyRegistrationDto extends PartialType(CreateVehicleDto) {
+  @IsOptional()
   @IsEnum(EstadoVehiculo)
   estado?: EstadoVehiculo;
 
+  @IsOptional()
   @ValidateNested()
   @Type(() => CreatePropertyCertificateDto)
-  @IsNotEmpty()
   propertyCertificate?: CreatePropertyCertificateDto;
 
+  @IsOptional()
   @ValidateNested()
   @Type(() => CreateVehicleRegistrationDto)
-  @IsNotEmpty()
   vehicleRegistration?: CreateVehicleRegistrationDto;
 }
 

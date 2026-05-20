@@ -113,7 +113,12 @@ class ApiClient {
 
   async updateVehicle(
     placa: string,
-    data: Partial<Vehicle>
+    data: Partial<Vehicle> & {
+      nit?: string;
+      codigoISCV?: string;
+      propertyCertificate?: Partial<PropertyCertificate>;
+      vehicleRegistration?: Partial<VehicleRegistration>;
+    }
   ): Promise<Vehicle> {
     return this.request<Vehicle>(`/vehicles/${placa}`, {
       method: "PATCH",
@@ -131,6 +136,10 @@ class ApiClient {
     return this.request<Vehicle>(`/vehicles/${placa}/activar`, {
       method: "PATCH",
     });
+  }
+
+  async getVehicleHistory(placa: string): Promise<any[]> {
+    return this.request<any[]>(`/vehicles/${placa}/historial`);
   }
 
   async getPropertyCertificate(placa: string): Promise<PropertyCertificate> {

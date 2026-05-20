@@ -75,6 +75,10 @@ function VehicleDetailDialog({
     vehicle && open ? `registration-${vehicle.placa}` : null,
     () => api.getVehicleRegistration(vehicle!.placa)
   );
+  const { data: history, error: historyError } = useSWR<any[]>(
+    vehicle && open && isAdmin ? `history-${vehicle.placa}` : null,
+    () => api.getVehicleHistory(vehicle!.placa)
+  );
 
   const handleGenerateCalcomania = async () => {
     if (!vehicle) return;
@@ -226,11 +230,12 @@ function VehicleDetailDialog({
         </DialogHeader>
 
         <Tabs defaultValue="general" className="mt-4">
-          <TabsList className={cn("grid w-full", isAdmin ? "grid-cols-4" : "grid-cols-3")}>
+          <TabsList className={cn("grid w-full", isAdmin ? "grid-cols-5" : "grid-cols-3")}>
             <TabsTrigger value="general">General</TabsTrigger>
             <TabsTrigger value="certificado">Certificado</TabsTrigger>
             <TabsTrigger value="tarjeta">Tarjeta</TabsTrigger>
             {isAdmin && <TabsTrigger value="admin">Admin</TabsTrigger>}
+            {isAdmin && <TabsTrigger value="historial">Historial</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="general" className="space-y-4">
@@ -497,7 +502,58 @@ function VehicleDetailDialog({
                     </Button>
                   </div>
                 )}
+                
+                <div className="space-y-3 pt-4 border-t">
+                  <h4 className="font-medium">Modificar Vehiculo</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Modificar las caracteristicas del vehiculo, como color, traspaso de propiedad, etc. Estas acciones generaran una nueva tarjeta de circulacion y se registraran en el historial.
+                  </p>
+                  <Button asChild variant="outline">
+                    <Link href={`/dashboard/vehiculos/${vehicle.placa}/editar`}>
+                      Editar Vehiculo
+                    </Link>
+                  </Button>
+                </div>
               </div>
+            </TabsContent>
+          )}
+          
+          {isAdmin && (
+            <TabsContent value="historial" className="space-y-4">
+              <h4 className="font-semibold text-lg">Historial de Cambios</h4>
+              {historyError ? (
+                <div className="text-destructive">Error al cargar historial</div>
+              ) : !history ? (
+                <div className="text-muted-foreground">Cargando historial...</div>
+              ) : history.length === 0 ? (
+                <div className="text-muted-foreground">No hay cambios registrados.</div>
+              ) : (
+                <div className="space-y-4">
+                  {history.map((h: any) => (
+                    <div key={h.id} className="border p-4 rounded-lg space-y-2">
+                      <div className="flex justify-between items-center">
+                        <Badge>{h.tipoCambio}</Badge>
+                        <span className="text-sm text-muted-foreground">
+                          {new Date(h.fechaCambio).toLocaleString("es-GT")}
+                        </span>
+                      </div>
+                      <p className="text-sm">
+                        Realizado por Admin ID: {h.adminUser?.idUsuario || h.adminUser?.id || "Desconocido"}
+                      </p>
+                      <div className="grid grid-cols-2 gap-4 mt-2 bg-muted p-2 rounded text-sm">
+                        <div>
+                          <p className="font-semibold mb-1">Anterior:</p>
+                          <pre className="whitespace-pre-wrap">{JSON.stringify(h.datosAnteriores, null, 2)}</pre>
+                        </div>
+                        <div>
+                          <p className="font-semibold mb-1">Nuevo:</p>
+                          <pre className="whitespace-pre-wrap">{JSON.stringify(h.datosNuevos, null, 2)}</pre>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </TabsContent>
           )}
         </Tabs>

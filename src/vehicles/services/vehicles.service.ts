@@ -14,6 +14,9 @@ import { VehicleDecal } from '../entities/vehicleDecal.entity';
 import { PdfService } from '../../pdf/pdf.service';
 import * as QRCode from 'qrcode';
 
+import { VehicleHistory } from '../entities/vehicleHistory.entity';
+import { User } from '../../users/entities/user.entity';
+
 type AuthUser = { role?: Role; sub?: number | string };
 
 @Injectable()
@@ -31,6 +34,8 @@ export class VehiclesService {
     private catalogsRepository: Repository<Catalog>,
     @InjectRepository(Taxpayer)
     private taxpayersRepository: Repository<Taxpayer>,
+    @InjectRepository(VehicleHistory)
+    private vehicleHistoryRepository: Repository<VehicleHistory>,
     private pdfService: PdfService,
   ) {}
 
@@ -136,7 +141,7 @@ export class VehiclesService {
     return vehicle;
   }
 
-  async updateVehicleWithPropertyRegistration(placa: string, payload: UpdateVehicleWithPropertyRegistrationDto) {
+  async updateVehicleWithPropertyRegistration(placa: string, payload: UpdateVehicleWithPropertyRegistrationDto, user?: AuthUser) {
     const vehicle = await this.vehiclesRepository.findOne({
       where: { placa },
       relations: ['catalog', 'taxpayer', 'propertyCertificates', 'vehicleRegistrations'],
@@ -144,6 +149,16 @@ export class VehiclesService {
     if (!vehicle) {
       throw new NotFoundException('Vehicle not found');
     }
+
+    const previousData = {
+      codigoISCV: vehicle.catalog?.codigoISCV,
+      nit: vehicle.taxpayer?.NIT,
+      color: vehicle.color,
+      estado: vehicle.estado,
+      uso: vehicle.uso,
+      motor: vehicle.motor,
+      chasis: vehicle.chasis,
+    };
 
     if (payload.codigoISCV) {
       const catalog = await this.catalogsRepository.findOne({ where: { codigoISCV: payload.codigoISCV } });
@@ -153,10 +168,14 @@ export class VehiclesService {
       vehicle.catalog = catalog;
     }
 
+    let isOwnerChange = false;
     if (payload.nit) {
       const taxpayer = await this.taxpayersRepository.findOne({ where: { NIT: payload.nit } });
       if (!taxpayer) {
         throw new NotFoundException('Taxpayer not found');
+      }
+      if (vehicle.taxpayer?.NIT !== taxpayer.NIT) {
+        isOwnerChange = true;
       }
       vehicle.taxpayer = taxpayer;
     }
@@ -207,28 +226,67 @@ export class VehiclesService {
       await this.propertyCertificatesRepository.save(propertyCertificate);
     }
 
-    if (payload.vehicleRegistration) {
-      const vehicleRegistration = vehicle.vehicleRegistrations?.[0]
-        ? this.vehicleRegistrationsRepository.merge(vehicle.vehicleRegistrations[0], {
-            noTarjeta: payload.vehicleRegistration.noTarjeta,
-            fechaRegistro: payload.vehicleRegistration.fechaRegistro,
-            aduanaLiquidadora: payload.vehicleRegistration.aduanaLiquidadora,
-            validaHasta: payload.vehicleRegistration.validaHasta,
-          })
-        : this.vehicleRegistrationsRepository.create({
-            noTarjeta: payload.vehicleRegistration.noTarjeta,
-            fechaRegistro: payload.vehicleRegistration.fechaRegistro,
-            aduanaLiquidadora: payload.vehicleRegistration.aduanaLiquidadora,
-            validaHasta: payload.vehicleRegistration.validaHasta,
-            vehicle: updatedVehicle,
-          });
+    // Always create a new Vehicle Registration card on update to reflect changes
+    const oldRegistration = vehicle.vehicleRegistrations?.sort((a, b) => b.fechaRegistro.getTime() - a.fechaRegistro.getTime())[0];
+    const newTarjetaNo = payload.vehicleRegistration?.noTarjeta || `TRJ-${Date.now()}`;
+    const newRegistration = this.vehicleRegistrationsRepository.create({
+      noTarjeta: newTarjetaNo,
+      fechaRegistro: payload.vehicleRegistration?.fechaRegistro || new Date(),
+      aduanaLiquidadora: payload.vehicleRegistration?.aduanaLiquidadora || oldRegistration?.aduanaLiquidadora || 'CENTRAL',
+      validaHasta: payload.vehicleRegistration?.validaHasta || new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+      vehicle: updatedVehicle,
+    });
+    const savedNewRegistration = await this.vehicleRegistrationsRepository.save(newRegistration);
 
-      await this.vehicleRegistrationsRepository.save(vehicleRegistration);
-    }
+    // Create a new calcomania associated with the new registration
+    const currentYear = new Date().getFullYear();
+    const newDecal = this.vehicleDecalsRepository.create({
+      idCalcomania: `CALC-${updatedVehicle.placa}-${Date.now()}`,
+      anio: currentYear,
+      estado: 'PENDIENTE',
+      fechaImpresion: null,
+      vehicle: updatedVehicle,
+      propertyCertificate: vehicle.propertyCertificates?.[0] || null, // Assuming at least one exists
+      vehicleRegistration: savedNewRegistration,
+    });
+    await this.vehicleDecalsRepository.save(newDecal);
+
+    // Track history
+    const newData = {
+      codigoISCV: updatedVehicle.catalog?.codigoISCV,
+      nit: updatedVehicle.taxpayer?.NIT,
+      color: updatedVehicle.color,
+      estado: updatedVehicle.estado,
+      uso: updatedVehicle.uso,
+      motor: updatedVehicle.motor,
+      chasis: updatedVehicle.chasis,
+    };
+
+    let changeType = 'MODIFICACION';
+    if (isOwnerChange) changeType = 'TRASPASO_PROPIEDAD';
+    else if (previousData.color !== newData.color) changeType = 'CAMBIO_COLOR';
+
+    const historyEntry = this.vehicleHistoryRepository.create({
+      datosAnteriores: previousData,
+      datosNuevos: newData,
+      tipoCambio: changeType,
+      vehicle: updatedVehicle,
+      adminUser: user?.sub ? ({ idUsuario: Number(user.sub) } as any) : null,
+    });
+    await this.vehicleHistoryRepository.save(historyEntry);
 
     return this.vehiclesRepository.findOne({
       where: { placa: updatedVehicle.placa },
       relations: ['catalog', 'taxpayer', 'propertyCertificates', 'vehicleRegistrations'],
+    });
+  }
+
+  async getVehicleHistory(placa: string, user?: AuthUser) {
+    const vehicle = await this.findOneVehicle(placa, user);
+    return this.vehicleHistoryRepository.find({
+      where: { vehicle: { placa: vehicle.placa } },
+      order: { fechaCambio: 'DESC' },
+      relations: ['adminUser'],
     });
   }
 
@@ -292,7 +350,7 @@ export class VehiclesService {
 
   async findVehicleRegistrationByPlaca(placa: string, user?: AuthUser) {
     await this.checkCalcomaniaPagada(placa, user);
-    const vehicleRegistration = await this.vehicleRegistrationsRepository.createQueryBuilder('vehicleRegistration').leftJoinAndSelect('vehicleRegistration.vehicle', 'vehicle').leftJoinAndSelect('vehicle.taxpayer', 'taxpayer').leftJoinAndSelect('taxpayer.profile', 'profile').leftJoinAndSelect('vehicle.catalog', 'catalog').where('vehicle.placa = :placa', { placa }).getOne();
+    const vehicleRegistration = await this.vehicleRegistrationsRepository.createQueryBuilder('vehicleRegistration').leftJoinAndSelect('vehicleRegistration.vehicle', 'vehicle').leftJoinAndSelect('vehicle.taxpayer', 'taxpayer').leftJoinAndSelect('taxpayer.profile', 'profile').leftJoinAndSelect('vehicle.catalog', 'catalog').where('vehicle.placa = :placa', { placa }).orderBy('vehicleRegistration.fechaRegistro', 'DESC').getOne();
 
     if (!vehicleRegistration) {
       throw new NotFoundException('Vehicle registration not found');

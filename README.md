@@ -1,24 +1,19 @@
 # LaraVehicles
 
-Sistema de Gestion Vehicular - Aplicacion completa con backend NestJS y frontend Next.js.
+Sistema de Gestion Vehicular - Backend API desarrollado con NestJS y PostgreSQL.
 
-## Estructura del Proyecto
+## Tecnologias Utilizadas
 
-```
-laravehicles/
-├── src/                    # Backend (NestJS)
-│   ├── auth/              # Autenticacion y autorizacion
-│   ├── catalogs/          # Catalogo ISCV (marcas/modelos)
-│   ├── database/          # Configuracion TypeORM
-│   ├── pdf/               # Generacion de PDFs
-│   ├── users/             # Usuarios, perfiles, contribuyentes
-│   └── vehicles/          # Vehiculos, certificados, calcomanias
-├── frontend/              # Frontend (Next.js)
-│   ├── app/               # App Router pages
-│   ├── components/        # Componentes UI
-│   └── lib/               # Utilidades, API client, tipos
-└── vercel.json            # Configuracion de deploy
-```
+| Tecnologia | Version | Proposito |
+|------------|---------|-----------|
+| Node.js    | >= 20   | Runtime de JavaScript |
+| NestJS     | ^11.0   | Framework backend (API REST) |
+| TypeORM    | ^0.3.28 | ORM para PostgreSQL |
+| PostgreSQL | >= 14   | Base de datos relacional |
+| JWT        | ^11.0   | Autenticacion con tokens |
+| Swagger    | ^11.2   | Documentacion de API |
+| bcrypt     | ^6.0    | Hash de contrasenas |
+| Jest       | ^30.0   | Testing |
 
 ## Requisitos Previos
 
@@ -78,7 +73,7 @@ npm install
 cp .env-example .env
 ```
 
-Editar el archivo `.env` con tus credenciales:
+Editar el archivo `.env` con tus credenciales. Las credenciales por defecto son:
 
 ```env
 PORT=3005
@@ -175,6 +170,18 @@ npm run start:dev
 cd laravehicles/frontend
 npm run dev
 ```
+
+---
+
+## Resumen de Conexion
+
+| Parametro | Valor por defecto |
+|-----------|-------------------|
+| **Nombre de la base de datos** | `laravehicles` |
+| **Puerto del backend** | `3005` |
+| **Puerto de PostgreSQL** | `5432` |
+| **URL del backend** | `http://localhost:3005` |
+| **Documentacion Swagger** | `http://localhost:3005/docs` |
 
 ---
 
